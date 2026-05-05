@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TeamBoard - 团队协作看板</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -273,6 +274,22 @@ body {
   border-color: rgba(59, 130, 246, 0.25);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
+
+.card.sortable-ghost {
+  opacity: 0.4;
+  background: #e5e7eb;
+  border: 2px dashed #9ca3af;
+}
+
+.card.sortable-chosen {
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  transform: scale(1.02);
+}
+
+.card.sortable-drag {
+  opacity: 0.9;
+  cursor: grabbing;
 }
 
 .card-title {
@@ -562,6 +579,75 @@ body {
   margin-top: 12px;
 }
 
+/* ========== 页面容器 ========== */
+.page-container {
+  padding: 24px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.page-container.hidden {
+  display: none;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+/* ========== 操作历史 ========== */
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.activity-item {
+  background: white;
+  border-radius: 8px;
+  padding: 14px 16px;
+  border: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  gap: 12px;
+}
+
+.activity-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.activity-icon.create { background: rgba(34, 197, 94, 0.1); }
+.activity-icon.update { background: rgba(59, 130, 246, 0.1); }
+.activity-icon.delete { background: rgba(239, 68, 68, 0.1); }
+.activity-icon.move { background: rgba(139, 92, 246, 0.1); }
+.activity-icon.comment { background: rgba(249, 115, 22, 0.1); }
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-text {
+  font-size: 14px;
+  color: #1d1d1f;
+  margin-bottom: 4px;
+}
+
+.activity-meta {
+  font-size: 12px;
+  color: #71717a;
+}
+
 .comment-input {
   flex: 1;
   padding: 8px 12px;
@@ -695,6 +781,10 @@ body {
     <span>📊</span>
     时间线
   </div>
+  <div class="nav-item" onclick="showPage('activity')">
+    <span>📜</span>
+    操作历史
+  </div>
   <div class="nav-item" onclick="showPage('my-tasks')">
     <span>📋</span>
     我的任务
@@ -729,6 +819,16 @@ body {
 
   <div class="board" id="boardContainer">
     <!-- 列和卡片动态生成 -->
+  </div>
+
+  <!-- 操作历史页面 -->
+  <div class="page-container hidden" id="activityPage">
+    <div class="page-header">
+      <h2>📜 操作历史</h2>
+    </div>
+    <div class="activity-list" id="activityList">
+      <!-- 历史记录动态生成 -->
+    </div>
   </div>
 </main>
 
@@ -819,6 +919,9 @@ async function init() {
 
     // 隐藏配置弹窗
     document.getElementById('setupModal').classList.add('hidden');
+
+    // 启动实时订阅
+    initRealtime();
   } catch (e) {
     console.error('初始化失败:', e);
     alert('连接 Supabase 失败，请检查配置');
@@ -1005,6 +1108,9 @@ function renderBoard() {
   html += `<div class="add-column-btn" onclick="createColumn()">+ 新建列表</div>`;
 
   container.innerHTML = html;
+
+  // 初始化拖拽
+  initSortable();
 }
 
 function renderTaskCard(task) {
@@ -1156,10 +1262,21 @@ function openTaskDetail(taskId) {
       <div class="drawer-label">创建者</div>
       <div class="drawer-value">${task.created_by || '未知'}</div>
     </div>
+    <div class="drawer-section">
+      <div class="drawer-label">评论</div>
+      <div id="commentsList"></div>
+      <div style="margin-top: 12px; display: flex; gap: 8px;">
+        <input type="text" class="drawer-input" id="newComment" placeholder="添加评论..." style="flex: 1;">
+        <button class="btn-primary" onclick="addComment()" style="margin: 0;">发送</button>
+      </div>
+    </div>
   `;
 
   document.getElementById('drawerOverlay').classList.add('active');
   document.getElementById('drawer').classList.add('active');
+
+  // 加载评论
+  loadComments();
 }
 
 function toggleTag(el) {
@@ -1198,12 +1315,14 @@ async function saveTask() {
     if (currentTaskId) {
       // 更新
       await sbClient.from('tasks').update(data).eq('id', currentTaskId);
+      logActivity('update', `更新了任务 "${title}"`, currentTaskId);
     } else {
       // 新建
       data.project_id = currentProjectId;
       data.column_id = currentColumnId;
       data.created_by = currentUserName;
       await sbClient.from('tasks').insert([data]);
+      logActivity('create', `创建了任务 "${title}"`);
     }
 
     closeDrawer();
@@ -1215,10 +1334,12 @@ async function saveTask() {
 }
 
 async function deleteCurrentTask() {
+  const task = tasks.find(t => t.id === currentTaskId);
   if (!confirm('确定删除这个任务吗？')) return;
 
   try {
     await sbClient.from('tasks').delete().eq('id', currentTaskId);
+    logActivity('delete', `删除了任务 "${task?.title || '未知'}"`);
     closeDrawer();
     await loadBoardData();
   } catch (e) {
@@ -1226,10 +1347,228 @@ async function deleteCurrentTask() {
   }
 }
 
-// ========== 页面切换（预留） ==========
+// ========== 评论功能 ==========
+async function loadComments() {
+  if (!currentTaskId) return;
+
+  try {
+    const { data, error } = await sbClient
+      .from('comments')
+      .select('*')
+      .eq('task_id', currentTaskId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+
+    const container = document.getElementById('commentsList');
+    if (container && data && data.length > 0) {
+      container.innerHTML = data.map(c => `
+        <div class="comment">
+          <div class="comment-author">${c.author}</div>
+          <div class="comment-text">${c.content}</div>
+        </div>
+      `).join('');
+    } else if (container) {
+      container.innerHTML = '<div style="color: #a1a1aa; font-size: 12px; padding: 12px; text-align: center;">暂无评论</div>';
+    }
+  } catch (e) {
+    console.error('加载评论失败:', e);
+  }
+}
+
+async function addComment() {
+  const input = document.getElementById('newComment');
+  const content = input.value.trim();
+  if (!content || !currentTaskId) return;
+
+  try {
+    await sbClient.from('comments').insert([{
+      task_id: currentTaskId,
+      content,
+      author: currentUserName
+    }]);
+
+    input.value = '';
+    await loadComments();
+    logActivity('comment', `评论了任务`, currentTaskId);
+  } catch (e) {
+    console.error('添加评论失败:', e);
+    alert('添加评论失败，请先在 Supabase 执行最新的 setup.sql 创建 comments 表');
+  }
+}
+
+// ========== 拖拽排序 ==========
+let sortableInstances = [];
+
+function initSortable() {
+  // 先销毁旧实例
+  sortableInstances.forEach(s => s.destroy());
+  sortableInstances = [];
+
+  const containers = document.querySelectorAll('.tasks-container');
+  containers.forEach(container => {
+    const sortable = new Sortable(container, {
+      group: 'tasks',
+      animation: 200,
+      ghostClass: 'sortable-ghost',
+      chosenClass: 'sortable-chosen',
+      dragClass: 'sortable-drag',
+      onEnd: async function(evt) {
+        const taskId = evt.item.dataset.taskId;
+        const newColumnId = evt.to.dataset.columnId;
+        const newOrder = evt.newIndex;
+        const task = tasks.find(t => t.id === taskId);
+        const newColumn = columns.find(c => c.id === newColumnId);
+
+        // 更新数据库
+        try {
+          await sbClient.from('tasks').update({
+            column_id: newColumnId,
+            "order": newOrder,
+            updated_by: currentUserName
+          }).eq('id', taskId);
+
+          // 记录操作历史
+          if (task && newColumn) {
+            logActivity('move', `将任务 "${task.title}" 移动到 "${newColumn.name}"`, taskId);
+          }
+
+          // 重新加载以同步所有客户端
+          await loadBoardData();
+        } catch (e) {
+          console.error('更新排序失败:', e);
+        }
+      }
+    });
+    sortableInstances.push(sortable);
+  });
+}
+
+// ========== 实时同步 ==========
+let realtimeChannel = null;
+
+function initRealtime() {
+  if (!sbClient) return;
+
+  // 先清理旧订阅
+  if (realtimeChannel) {
+    sbClient.removeChannel(realtimeChannel);
+  }
+
+  // 订阅任务变更
+  realtimeChannel = sbClient
+    .channel('teamboard-realtime')
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'tasks' },
+      (payload) => {
+        console.log('任务变更:', payload);
+        loadBoardData();
+      }
+    )
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'comments' },
+      (payload) => {
+        console.log('评论变更:', payload);
+        loadComments();
+      }
+    )
+    .subscribe();
+}
+
+// ========== 页面切换 ==========
 function showPage(page) {
-  // 后续扩展：时间线、我的任务
-  alert('功能开发中...');
+  // 更新导航状态
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.remove('active');
+    if (item.onclick.toString().includes(page)) {
+      item.classList.add('active');
+    }
+  });
+
+  // 切换页面显示
+  const boardContainer = document.getElementById('boardContainer');
+  const activityPage = document.getElementById('activityPage');
+
+  if (page === 'board') {
+    boardContainer.classList.remove('hidden');
+    activityPage.classList.add('hidden');
+  } else if (page === 'activity') {
+    boardContainer.classList.add('hidden');
+    activityPage.classList.remove('hidden');
+    loadActivity();
+  } else {
+    alert('功能开发中...');
+  }
+}
+
+// ========== 操作历史记录 ==========
+async function logActivity(action, content, taskId = null) {
+  if (!sbClient || !currentProjectId) return;
+
+  try {
+    await sbClient.from('activity_log').insert([{
+      project_id: currentProjectId,
+      task_id: taskId,
+      action,
+      content,
+      author: currentUserName
+    }]);
+  } catch (e) {
+    console.error('记录操作失败:', e);
+  }
+}
+
+async function loadActivity() {
+  if (!sbClient || !currentProjectId) return;
+
+  try {
+    const { data, error } = await sbClient
+      .from('activity_log')
+      .select('*')
+      .eq('project_id', currentProjectId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error) throw error;
+
+    const container = document.getElementById('activityList');
+    const icons = {
+      create: '➕',
+      update: '✏️',
+      delete: '🗑️',
+      move: '➡️',
+      comment: '💬'
+    };
+
+    container.innerHTML = (data || []).map(item => `
+      <div class="activity-item">
+        <div class="activity-icon ${item.action}">${icons[item.action] || '📌'}</div>
+        <div class="activity-content">
+          <div class="activity-text">${item.author} ${item.content}</div>
+          <div class="activity-meta">${formatActivityTime(item.created_at)}</div>
+        </div>
+      </div>
+    `).join('');
+
+    if (!data || data.length === 0) {
+      container.innerHTML = '<div style="text-align: center; color: #a1a1aa; padding: 40px;">暂无操作记录</div>';
+    }
+  } catch (e) {
+    console.error('加载操作历史失败:', e);
+    const container = document.getElementById('activityList');
+    container.innerHTML = '<div style="text-align: center; color: #a1a1aa; padding: 40px;">请先在 Supabase 执行最新的 setup.sql 创建 activity_log 表</div>';
+  }
+}
+
+function formatActivityTime(dateStr) {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diff = now - date;
+
+  if (diff < 60000) return '刚刚';
+  if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`;
+  return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 // ESC 关闭抽屉
