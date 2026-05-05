@@ -1029,6 +1029,14 @@ body {
 
   <!-- ========== 仪表盘首页 ========== -->
   <div class="page-container" id="dashboardPage">
+    <!-- 用量监控卡片 -->
+    <div class="dashboard-section">
+      <h3 class="section-title">🚀 用量监控</h3>
+      <div class="project-cards" id="usageMetrics">
+        <!-- 用量卡片动态生成 -->
+      </div>
+    </div>
+
     <!-- 项目总览卡片 -->
     <div class="dashboard-section">
       <h3 class="section-title">📊 项目总览</h3>
@@ -1751,6 +1759,14 @@ function initRealtime() {
         loadComments();
       }
     )
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'metrics' },
+      async (payload) => {
+        console.log('用量数据变更:', payload);
+        await loadUsageMetrics();
+        renderUsageMetrics();
+      }
+    )
     .subscribe();
 }
 
@@ -1896,21 +1912,69 @@ function showPage(page) {
 
 // ========== 仪表盘渲染 ==========
 async function renderDashboard() {
-  // 1. 渲染项目卡片
+  // 1. 渲染用量监控
+  renderUsageMetrics();
+
+  // 2. 渲染项目卡片
   renderProjectCards();
 
-  // 2. 渲染我的待办
+  // 3. 渲染我的待办
   await renderMyTasks();
 
-  // 3. 渲染快捷链接
+  // 4. 渲染快捷链接
   renderQuickLinks();
 
-  // 4. 渲染本周到期
+  // 5. 渲染本周到期
   renderDueTasks();
+}
 
-  // 5. 拉取外部数据源（预留）
-  const externalData = await fetchAllDataSource();
-  console.log('外部数据源:', externalData);
+// ========== 用量监控渲染 ==========
+let usageMetrics = [];
+
+async function loadUsageMetrics() {
+  if (!sbClient) return [];
+  try {
+    const { data } = await sbClient
+      .from('metrics')
+      .select('*')
+      .eq('source', 'volcengine')
+      .order('timestamp', { ascending: false })
+      .limit(10);
+    usageMetrics = data || [];
+    return usageMetrics;
+  } catch (e) {
+    console.log('加载用量数据失败:', e);
+    return [];
+  }
+}
+
+function renderUsageMetrics() {
+  const container = document.getElementById('usageMetrics');
+  if (!container) return;
+
+  const total = usageMetrics.find(m => m.metric_name === 'total_tokens')?.value || 0;
+  const prompt = usageMetrics.find(m => m.metric_name === 'prompt_tokens')?.value || 0;
+  const completion = usageMetrics.find(m => m.metric_name === 'completion_tokens')?.value || 0;
+
+  const quota = 1000000; // CodingPlan 100万额度
+  const percent = Math.min(100, (total / quota) * 100).toFixed(1);
+
+  container.innerHTML = `
+    <div class="project-card" style="cursor: default;">
+      <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">🚀 CodingPlan 用量</div>
+      <div style="font-size: 14px; color: #666; margin-bottom: 8px;">
+        总用量: <strong style="color: #3b82f6;">${total.toLocaleString()}</strong> / ${quota.toLocaleString()} tokens
+      </div>
+      <div style="height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin-bottom: 12px;">
+        <div style="height: 100%; width: ${percent}%; background: linear-gradient(90deg, #3b82f6, #8b5cf6); border-radius: 4px;"></div>
+      </div>
+      <div style="display: flex; gap: 16px; font-size: 12px; color: #666;">
+        <span>输入: ${prompt.toLocaleString()}</span>
+        <span>输出: ${completion.toLocaleString()}</span>
+        <span style="color: #3b82f6; font-weight: 600;">${percent}%</span>
+      </div>
+    </div>
+  `;
 }
 
 function renderProjectCards() {
@@ -2134,6 +2198,7 @@ async function loadAllData() {
     currentProjectId = projects[0].id;
   }
   await loadBoardData();
+  await loadUsageMetrics();
 }
 
 // ========== 操作历史记录 ==========
