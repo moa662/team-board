@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeamBoard - 团队协作看板</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ========== 左侧导航 ========== */
+.sidebar {
+  width: 220px;
+  background: #27272a;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 18px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  color: #fafafa;
+}
+
+.nav-item {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #a1a1aa;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,0.04);
+  color: #fafafa;
+}
+
+.nav-item.active {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.nav-section {
+  font-size: 11px;
+  color: #71717a;
+  padding: 16px 16px 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nav-project {
+  padding: 8px 16px 8px 40px;
+  font-size: 13px;
+  color: #71717a;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s;
+}
+
+.nav-project:hover {
+  color: #e4e4e7;
+  background: rgba(255,255,255,0.03);
+}
+
+.nav-project.active {
+  color: #fafafa;
+  background: rgba(255,255,255,0.05);
+}
+
+.new-project-btn {
+  color: #52525b;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.new-project-btn:hover {
+  color: #60a5fa;
+}
+
+/* ========== 主区域 ========== */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f5f5f7;
+  position: relative;
+}
+
+/* 顶部栏 */
+.header {
+  height: 56px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.breadcrumb {
+  font-size: 14px;
+  color: #71717a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.breadcrumb strong {
+  color: #1d1d1f;
+  font-weight: 500;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.btn-secondary {
+  background: #f4f4f5;
+  color: #52525b;
+}
+
+.btn-secondary:hover {
+  background: #e4e4e7;
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.online-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f4f4f5;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #52525b;
+}
+
+.online-dot {
+  width: 6px;
+  height: 6px;
+  background: #22c55e;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ========== 看板区域 ========== */
+.board {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  align-items: flex-start;
+}
+
+.column {
+  min-width: 290px;
+  max-width: 290px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 4px;
+}
+
+.column-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #52525b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.column-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.column-dot.todo { background: #d4d4d8; }
+.column-dot.progress { background: #3b82f6; }
+.column-dot.review { background: #8b5cf6; }
+.column-dot.done { background: #22c55e; }
+
+.count {
+  background: #e4e4e7;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  color: #52525b;
+  font-weight: 600;
+}
+
+/* ========== 任务卡片 ========== */
+.card {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 8px;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.card:hover {
+  border-color: rgba(59, 130, 246, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #1d1d1f;
+  line-height: 1.4;
+}
+
+.card-desc {
+  font-size: 12px;
+  color: #71717a;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.card-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.tag {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.tag.blue { background: rgba(59, 130, 246, 0.1); color: #1d4ed8; }
+.tag.green { background: rgba(34, 197, 94, 0.1); color: #16a34a; }
+.tag.purple { background: rgba(139, 92, 246, 0.1); color: #7c3aed; }
+.tag.orange { background: rgba(249, 115, 22, 0.1); color: #c2410c; }
+.tag.red { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.assignee {
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+}
+
+.date {
+  font-size: 11px;
+  color: #71717a;
+}
+
+.date.overdue {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.add-task-btn {
+  padding: 10px 12px;
+  text-align: center;
+  color: #71717a;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: all 0.1s;
+  background: rgba(255,255,255,0.5);
+  border: 1px dashed rgba(0,0,0,0.08);
+}
+
+.add-task-btn:hover {
+  background: #ffffff;
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #3b82f6;
+}
+
+.add-column-btn {
+  min-width: 290px;
+  max-width: 290px;
+  padding: 40px 20px;
+  text-align: center;
+  color: #71717a;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.15s;
+  background: rgba(255,255,255,0.5);
+  border: 1px dashed rgba(0,0,0,0.08);
+  flex-shrink: 0;
+}
+
+.add-column-btn:hover {
+  background: #ffffff;
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #3b82f6;
+}
+
+/* ========== 右侧抽屉 ========== */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s;
+}
+
+.drawer-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.drawer {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 420px;
+  background: #ffffff;
+  border-left: 1px solid rgba(0,0,0,0.06);
+  z-index: 101;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-overlay.active + .drawer,
+.drawer.active {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drawer-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1d1d1f;
+}
+
+.drawer-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f4f4f5;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 18px;
+  color: #52525b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drawer-close:hover {
+  background: #e4e4e7;
+}
+
+.drawer-body {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.drawer-section {
+  margin-bottom: 24px;
+}
+
+.drawer-label {
+  font-size: 11px;
+  color: #71717a;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.drawer-value {
+  font-size: 14px;
+  color: #3f3f46;
+}
+
+.drawer-input,
+.drawer-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.15s;
+}
+
+.drawer-input:focus,
+.drawer-textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.drawer-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.drawer-footer {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* 标签选择器 */
+.tag-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag-option {
+  padding: 5px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  opacity: 0.6;
+  transition: all 0.15s;
+}
+
+.tag-option.selected {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.tag-option.blue { background: rgba(59, 130, 246, 0.1); color: #1d4ed8; }
+.tag-option.green { background: rgba(34, 197, 94, 0.1); color: #16a34a; }
+.tag-option.purple { background: rgba(139, 92, 246, 0.1); color: #7c3aed; }
+.tag-option.orange { background: rgba(249, 115, 22, 0.1); color: #c2410c; }
+.tag-option.red { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+
+/* ========== 评论区 ========== */
+.comment {
+  background: #f5f5f7;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.comment-author {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3b82f6;
+  margin-bottom: 4px;
+}
+
+.comment-text {
+  font-size: 13px;
+  color: #52525b;
+  line-height: 1.5;
+}
+
+.comment-time {
+  font-size: 11px;
+  color: #a1a1aa;
+  margin-top: 6px;
+}
+
+.comment-input-wrap {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.comment-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+
+.comment-input:focus {
+  border-color: #3b82f6;
+}
+
+.comment-btn {
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ========== 配置弹窗 ========== */
+.setup-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.setup-box {
+  width: 100%;
+  max-width: 450px;
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.setup-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.setup-subtitle {
+  font-size: 14px;
+  color: #71717a;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #52525b;
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.15s;
+}
+
+.form-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.setup-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 8px;
+}
+
+.setup-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* 辅助 */
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ========== 左侧导航 ========== -->
+<aside class="sidebar">
+  <div class="logo">🔀 TeamBoard</div>
+
+  <div class="nav-item active" onclick="showPage('board')">
+    <span>🏠</span>
+    看板
+  </div>
+  <div class="nav-item" onclick="showPage('timeline')">
+    <span>📊</span>
+    时间线
+  </div>
+  <div class="nav-item" onclick="showPage('my-tasks')">
+    <span>📋</span>
+    我的任务
+  </div>
+
+  <div class="nav-section">项目</div>
+  <div id="projectList">
+    <!-- 项目列表动态生成 -->
+  </div>
+  <div class="nav-project new-project-btn" onclick="createProject()">
+    + 新建项目
+  </div>
+</aside>
+
+<!-- ========== 主区域 ========== -->
+<main class="main">
+  <header class="header">
+    <div class="breadcrumb">
+      <span>项目</span>
+      <span>/</span>
+      <strong id="currentProjectName">加载中...</strong>
+    </div>
+    <div class="header-actions">
+      <div class="online-status">
+        <span class="online-dot"></span>
+        <span id="currentUser">未登录</span>
+      </div>
+      <button class="btn btn-secondary" onclick="openSettings()">⚙️ 设置</button>
+      <button class="btn btn-primary" onclick="openTaskModal()">+ 新建任务</button>
+    </div>
+  </header>
+
+  <div class="board" id="boardContainer">
+    <!-- 列和卡片动态生成 -->
+  </div>
+</main>
+
+<!-- ========== 右侧抽屉 - 任务详情 ========== -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-title" id="drawerTitle">任务详情</div>
+    <button class="drawer-close" onclick="closeDrawer()">×</button>
+  </div>
+  <div class="drawer-body" id="drawerBody">
+    <!-- 动态内容 -->
+  </div>
+  <div class="drawer-footer" id="drawerFooter">
+    <button class="btn btn-danger" id="deleteTaskBtn" onclick="deleteCurrentTask()">删除任务</button>
+    <button class="btn btn-secondary" onclick="closeDrawer()">取消</button>
+    <button class="btn btn-primary" onclick="saveTask()">保存</button>
+  </div>
+</div>
+
+<!-- ========== 配置弹窗 ========== -->
+<div class="setup-modal" id="setupModal">
+  <div class="setup-box">
+    <div class="setup-title">🔧 首次配置</div>
+    <div class="setup-subtitle">配置 Supabase 连接和你的用户名</div>
+
+    <div class="form-group">
+      <label class="form-label">Supabase Project URL</label>
+      <input type="text" class="form-input" id="setupUrl" placeholder="https://xxxx.supabase.co">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Supabase Anon Key</label>
+      <input type="text" class="form-input" id="setupKey" placeholder="很长一串 key">
+    </div>
+    <div class="form-group">
+      <label class="form-label">你的名字</label>
+      <input type="text" class="form-input" id="setupName" placeholder="用于标记任务创建者">
+    </div>
+
+    <button class="setup-btn" onclick="saveSetup()">开始使用</button>
+  </div>
+</div>
+
+<script>
+// ========== 全局变量 ==========
+let sbClient = null;
+let currentProjectId = null;
+let currentTaskId = null;
+let currentUserName = null;
+let columns = [];
+let tasks = [];
+let projects = [];
+let selectedTags = [];
+
+// ========== 初始化 ==========
+document.addEventListener('DOMContentLoaded', init);
+
+async function init() {
+  // 检查配置
+  const config = localStorage.getItem('teamboard_config');
+  if (!config) {
+    document.getElementById('setupModal').classList.remove('hidden');
+    return;
+  }
+
+  const { url, key, username } = JSON.parse(config);
+  if (!url || !key) {
+    document.getElementById('setupModal').classList.remove('hidden');
+    return;
+  }
+
+  // 初始化 Supabase
+  try {
+    sbClient = window.supabase.createClient(url, key);
+    currentUserName = username || '匿名用户';
+    document.getElementById('currentUser').textContent = currentUserName;
+
+    // 加载项目列表
+    await loadProjects();
+
+    // 如果没有项目，创建默认项目
+    if (projects.length === 0) {
+      await createDefaultProject();
+    } else {
+      currentProjectId = projects[0].id;
+      await selectProject(currentProjectId);
+    }
+
+    // 隐藏配置弹窗
+    document.getElementById('setupModal').classList.add('hidden');
+  } catch (e) {
+    console.error('初始化失败:', e);
+    alert('连接 Supabase 失败，请检查配置');
+    document.getElementById('setupModal').classList.remove('hidden');
+  }
+}
+
+// ========== 配置相关 ==========
+function saveSetup() {
+  const url = document.getElementById('setupUrl').value.trim();
+  const key = document.getElementById('setupKey').value.trim();
+  const name = document.getElementById('setupName').value.trim() || '匿名用户';
+
+  if (!url || !key) {
+    alert('请填写完整配置');
+    return;
+  }
+
+  localStorage.setItem('teamboard_config', JSON.stringify({ url, key, username: name }));
+  window.location.reload();
+}
+
+function openSettings() {
+  const config = JSON.parse(localStorage.getItem('teamboard_config') || '{}');
+  document.getElementById('setupUrl').value = config.url || '';
+  document.getElementById('setupKey').value = config.key || '';
+  document.getElementById('setupName').value = config.username || '';
+  document.getElementById('setupModal').classList.remove('hidden');
+}
+
+// ========== 项目相关 ==========
+async function loadProjects() {
+  try {
+    const { data, error } = await sbClient
+      .from('projects')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    projects = data || [];
+    renderProjectList();
+  } catch (e) {
+    // 如果表不存在，尝试创建表结构（简化处理）
+    console.log('加载项目失败，可能需要建表:', e);
+    projects = [];
+  }
+}
+
+function renderProjectList() {
+  const container = document.getElementById('projectList');
+  container.innerHTML = projects.map(p => `
+    <div class="nav-project ${p.id === currentProjectId ? 'active' : ''}" onclick="selectProject('${p.id}')">
+      ${p.icon || '📁'} ${p.name}
+    </div>
+  `).join('');
+}
+
+async function selectProject(projectId) {
+  currentProjectId = projectId;
+  const project = projects.find(p => p.id === projectId);
+  if (project) {
+    document.getElementById('currentProjectName').textContent = project.name;
+  }
+  renderProjectList();
+  await loadBoardData();
+}
+
+async function createProject() {
+  const name = prompt('输入项目名称：', '新项目');
+  if (!name) return;
+
+  try {
+    const { data, error } = await sbClient
+      .from('projects')
+      .insert([{ name, icon: '📁' }])
+      .select();
+
+    if (error) throw error;
+
+    // 创建默认列
+    const projectId = data[0].id;
+    const defaultColumns = [
+      { project_id: projectId, name: '待办', color: 'todo', order: 0 },
+      { project_id: projectId, name: '进行中', color: 'progress', order: 1 },
+      { project_id: projectId, name: '评审中', color: 'review', order: 2 },
+      { project_id: projectId, name: '已完成', color: 'done', order: 3 },
+    ];
+
+    await sbClient.from('columns').insert(defaultColumns);
+
+    await loadProjects();
+    await selectProject(projectId);
+  } catch (e) {
+    console.error('创建项目失败:', e);
+    alert('创建项目失败，请先在 Supabase 创建 projects 表');
+  }
+}
+
+async function createDefaultProject() {
+  try {
+    const { data, error } = await sbClient
+      .from('projects')
+      .insert([{ name: '我的第一个项目', icon: '🔥' }])
+      .select();
+
+    if (error) throw error;
+
+    const projectId = data[0].id;
+    const defaultColumns = [
+      { project_id: projectId, name: '待办', color: 'todo', order: 0 },
+      { project_id: projectId, name: '进行中', color: 'progress', order: 1 },
+      { project_id: projectId, name: '评审中', color: 'review', order: 2 },
+      { project_id: projectId, name: '已完成', color: 'done', order: 3 },
+    ];
+
+    await sbClient.from('columns').insert(defaultColumns);
+
+    await loadProjects();
+    await selectProject(projectId);
+  } catch (e) {
+    console.error('创建默认项目失败:', e);
+  }
+}
+
+// ========== 看板数据 ==========
+async function loadBoardData() {
+  if (!currentProjectId) return;
+
+  try {
+    // 加载列
+    const { data: cols, error: colErr } = await sbClient
+      .from('columns')
+      .select('*')
+      .eq('project_id', currentProjectId)
+      .order('order', { ascending: true });
+
+    if (colErr) throw colErr;
+    columns = cols || [];
+
+    // 加载任务
+    const { data: tasksData, error: taskErr } = await sbClient
+      .from('tasks')
+      .select('*')
+      .eq('project_id', currentProjectId)
+      .order('created_at', { ascending: false });
+
+    if (taskErr) throw taskErr;
+    tasks = tasksData || [];
+
+    renderBoard();
+  } catch (e) {
+    console.error('加载看板数据失败:', e);
+  }
+}
+
+// ========== 渲染看板 ==========
+function renderBoard() {
+  const container = document.getElementById('boardContainer');
+
+  let html = '';
+
+  // 渲染每一列
+  columns.forEach(col => {
+    const colTasks = tasks.filter(t => t.column_id === col.id);
+
+    html += `
+      <div class="column" data-column-id="${col.id}">
+        <div class="column-header">
+          <span class="column-title">
+            <span class="column-dot ${col.color}"></span>
+            ${col.name}
+            <span class="count">${colTasks.length}</span>
+          </span>
+        </div>
+        <div class="tasks-container" data-column-id="${col.id}">
+          ${colTasks.map(task => renderTaskCard(task)).join('')}
+        </div>
+        <div class="add-task-btn" onclick="openTaskModal('${col.id}')">+ 添加任务</div>
+      </div>
+    `;
+  });
+
+  // 添加列按钮
+  html += `<div class="add-column-btn" onclick="createColumn()">+ 新建列表</div>`;
+
+  container.innerHTML = html;
+}
+
+function renderTaskCard(task) {
+  const tagsHtml = (task.tags || []).map(tag => `<span class="tag ${tag}">${getTagName(tag)}</span>`).join('');
+
+  const assigneeChar = task.assignee ? task.assignee.charAt(0).toUpperCase() : '?';
+
+  return `
+    <div class="card" data-task-id="${task.id}" onclick="openTaskDetail('${task.id}')">
+      <div class="card-title">${task.title}</div>
+      ${task.description ? `<div class="card-desc">${task.description}</div>` : ''}
+      <div class="card-tags">${tagsHtml}</div>
+      <div class="card-meta">
+        ${task.due_date ? `<span class="date">${formatDate(task.due_date)}</span>` : '<span></span>'}
+        ${task.assignee ? `<div class="assignee" title="${task.assignee}">${assigneeChar}</div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function getTagName(tag) {
+  const names = {
+    blue: '重要',
+    green: '设计',
+    purple: '后端',
+    orange: '紧急',
+    red: '高优'
+  };
+  return names[tag] || tag;
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  date.setHours(0, 0, 0, 0);
+
+  const diff = date - today;
+  if (diff < 0) return '已逾期';
+  if (diff === 0) return '今天';
+  if (diff === 86400000) return '明天';
+  return `${date.getMonth() + 1}月${date.getDate()}日`;
+}
+
+// ========== 列操作 ==========
+async function createColumn() {
+  const name = prompt('输入列表名称：', '新列表');
+  if (!name) return;
+
+  try {
+    await sbClient.from('columns').insert([{
+      project_id: currentProjectId,
+      name,
+      color: 'todo',
+      order: columns.length
+    }]);
+    await loadBoardData();
+  } catch (e) {
+    console.error('创建列失败:', e);
+  }
+}
+
+// ========== 任务操作 ==========
+function openTaskModal(columnId = null) {
+  currentTaskId = null;
+  selectedTags = [];
+
+  if (columnId) {
+    currentColumnId = columnId;
+  } else if (columns.length > 0) {
+    currentColumnId = columns[0].id;
+  }
+
+  document.getElementById('drawerTitle').textContent = '新建任务';
+  document.getElementById('deleteTaskBtn').style.display = 'none';
+
+  document.getElementById('drawerBody').innerHTML = `
+    <div class="drawer-section">
+      <div class="drawer-label">任务标题</div>
+      <input type="text" class="drawer-input" id="taskTitle" placeholder="输入任务标题">
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-label">描述</div>
+      <textarea class="drawer-textarea" id="taskDesc" placeholder="详细描述这个任务..."></textarea>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-label">标签</div>
+      <div class="tag-selector" id="tagSelector">
+        <div class="tag-option red" data-tag="red" onclick="toggleTag(this)">高优</div>
+        <div class="tag-option blue" data-tag="blue" onclick="toggleTag(this)">重要</div>
+        <div class="tag-option purple" data-tag="purple" onclick="toggleTag(this)">后端</div>
+        <div class="tag-option orange" data-tag="orange" onclick="toggleTag(this)">紧急</div>
+        <div class="tag-option green" data-tag="green" onclick="toggleTag(this)">设计</div>
+      </div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-label">负责人</div>
+      <input type="text" class="drawer-input" id="taskAssignee" placeholder="如：张三" value="${currentUserName}">
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-label">截止日期</div>
+      <input type="date" class="drawer-input" id="taskDueDate">
+    </div>
+  `;
+
+  document.getElementById('drawerOverlay').classList.add('active');
+  document.getElementById('drawer').classList.add('active');
+
+  setTimeout(() => document.getElementById('taskTitle').focus(), 100);
+}
+
+function openTaskDetail(taskId) {
+  currentTaskId = taskId;
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  selectedTags = task.tags || [];
+
+  document.getElementById('drawerTitle').textContent = '编辑任务';
+  document.getElementById('deleteTaskBtn').style.display = 'block';
+
+  const tagsHtml = ['red', 'blue', 'purple', 'orange', 'green'].map(tag => `
+    <div class="tag-option ${tag} ${selectedTags.includes(tag) ? 'selected' : ''}" data-tag="${tag}" onclick="toggleTag(this)">${getTagName(tag)}</div>
+  `).join('');
+
+  document.getElementById('drawerBody').innerHTML = `
+    <div class="drawer-section">
+      <div class="drawer-label">任务标题</div>
+      <input type="text" class="drawer-input" id="taskTitle" value="${task.title}">
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-label">描述</div>
+      <textarea class="drawer-textarea" id="taskDesc" placeholder="详细描述这个任务...">${task.description || ''}</textarea>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-label">标签</div>
+      <div class="tag-selector" id="tagSelector">${tagsHtml}</div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-label">负责人</div>
+      <input type="text" class="drawer-input" id="taskAssignee" value="${task.assignee || ''}">
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-label">截止日期</div>
+      <input type="date" class="drawer-input" id="taskDueDate" value="${task.due_date ? task.due_date.split('T')[0] : ''}">
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-label">创建者</div>
+      <div class="drawer-value">${task.created_by || '未知'}</div>
+    </div>
+  `;
+
+  document.getElementById('drawerOverlay').classList.add('active');
+  document.getElementById('drawer').classList.add('active');
+}
+
+function toggleTag(el) {
+  const tag = el.dataset.tag;
+  el.classList.toggle('selected');
+
+  if (selectedTags.includes(tag)) {
+    selectedTags = selectedTags.filter(t => t !== tag);
+  } else {
+    selectedTags.push(tag);
+  }
+}
+
+function closeDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('active');
+  document.getElementById('drawer').classList.remove('active');
+}
+
+async function saveTask() {
+  const title = document.getElementById('taskTitle').value.trim();
+  if (!title) {
+    alert('请输入任务标题');
+    return;
+  }
+
+  const data = {
+    title,
+    description: document.getElementById('taskDesc').value.trim(),
+    assignee: document.getElementById('taskAssignee').value.trim(),
+    due_date: document.getElementById('taskDueDate').value || null,
+    tags: selectedTags.length > 0 ? selectedTags : null,
+    updated_by: currentUserName
+  };
+
+  try {
+    if (currentTaskId) {
+      // 更新
+      await sbClient.from('tasks').update(data).eq('id', currentTaskId);
+    } else {
+      // 新建
+      data.project_id = currentProjectId;
+      data.column_id = currentColumnId;
+      data.created_by = currentUserName;
+      await sbClient.from('tasks').insert([data]);
+    }
+
+    closeDrawer();
+    await loadBoardData();
+  } catch (e) {
+    console.error('保存任务失败:', e);
+    alert('保存失败，请检查数据库表结构');
+  }
+}
+
+async function deleteCurrentTask() {
+  if (!confirm('确定删除这个任务吗？')) return;
+
+  try {
+    await sbClient.from('tasks').delete().eq('id', currentTaskId);
+    closeDrawer();
+    await loadBoardData();
+  } catch (e) {
+    console.error('删除失败:', e);
+  }
+}
+
+// ========== 页面切换（预留） ==========
+function showPage(page) {
+  // 后续扩展：时间线、我的任务
+  alert('功能开发中...');
+}
+
+// ESC 关闭抽屉
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeDrawer();
+});
+</script>
+</body>
+</html>

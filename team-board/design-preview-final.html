@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>最终方案：Linear 布局 + 柔和深色</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  display: flex;
+  height: 100vh;
+}
+
+/* 左侧导航 - 更柔和的深色 */
+.sidebar {
+  width: 220px;
+  background: #27272a;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 18px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  color: #fafafa;
+}
+
+.nav-item {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #a1a1aa;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,0.04);
+  color: #fafafa;
+}
+
+.nav-item.active {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.nav-section {
+  font-size: 11px;
+  color: #71717a;
+  padding: 16px 16px 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nav-project {
+  padding: 8px 16px 8px 40px;
+  font-size: 13px;
+  color: #71717a;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-project:hover {
+  color: #e4e4e7;
+  background: rgba(255,255,255,0.03);
+}
+
+.nav-project.active {
+  color: #fafafa;
+  background: rgba(255,255,255,0.05);
+}
+
+/* 主区域 - 浅灰背景 */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f5f5f7;
+}
+
+/* 顶部栏 - 纯白 */
+.header {
+  height: 56px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background: #ffffff;
+}
+
+.breadcrumb {
+  font-size: 14px;
+  color: #71717a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.breadcrumb strong {
+  color: #1d1d1f;
+  font-weight: 500;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.btn-secondary {
+  background: #f4f4f5;
+  color: #52525b;
+}
+
+.btn-secondary:hover {
+  background: #e4e4e7;
+}
+
+/* 看板区域 - 浅灰 */
+.board {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+}
+
+.column {
+  min-width: 290px;
+  max-width: 290px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 4px;
+}
+
+.column-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #52525b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.column-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.column-dot.todo { background: #d4d4d8; }
+.column-dot.progress { background: #3b82f6; }
+.column-dot.review { background: #8b5cf6; }
+.column-dot.done { background: #22c55e; }
+
+.count {
+  background: #e4e4e7;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  color: #52525b;
+  font-weight: 600;
+}
+
+/* 卡片 - 白底 */
+.card {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 8px;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.card:hover {
+  border-color: rgba(59, 130, 246, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #1d1d1f;
+  line-height: 1.4;
+}
+
+.card-desc {
+  font-size: 12px;
+  color: #71717a;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.card-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.tag {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.tag.blue { background: rgba(59, 130, 246, 0.1); color: #1d4ed8; }
+.tag.green { background: rgba(34, 197, 94, 0.1); color: #16a34a; }
+.tag.purple { background: rgba(139, 92, 246, 0.1); color: #7c3aed; }
+.tag.orange { background: rgba(249, 115, 22, 0.1); color: #c2410c; }
+.tag.red { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.assignee {
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+}
+
+.date {
+  font-size: 11px;
+  color: #71717a;
+}
+
+.date.overdue {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+/* 右侧详情抽屉 */
+.drawer {
+  width: 380px;
+  background: #ffffff;
+  border-left: 1px solid rgba(0,0,0,0.06);
+  padding: 24px;
+}
+
+.drawer-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #1d1d1f;
+}
+
+.drawer-section {
+  margin-bottom: 24px;
+}
+
+.drawer-label {
+  font-size: 11px;
+  color: #71717a;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.drawer-value {
+  font-size: 14px;
+  color: #3f3f46;
+}
+
+.comment {
+  background: #f5f5f7;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.comment-author {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3b82f6;
+  margin-bottom: 4px;
+}
+
+.comment-text {
+  font-size: 13px;
+  color: #52525b;
+  line-height: 1.5;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.add-task-btn {
+  padding: 10px 12px;
+  text-align: center;
+  color: #71717a;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: all 0.1s;
+  background: rgba(255,255,255,0.5);
+  border: 1px dashed rgba(0,0,0,0.08);
+}
+
+.add-task-btn:hover {
+  background: #ffffff;
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #3b82f6;
+}
+
+/* 在线状态 */
+.online-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f4f4f5;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #52525b;
+}
+
+.online-dot {
+  width: 6px;
+  height: 6px;
+  background: #22c55e;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* 底部工具栏 */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+</style>
+</head>
+<body>
+
+<!-- 左侧导航 -->
+<aside class="sidebar">
+  <div class="logo">🔀 TeamBoard</div>
+
+  <div class="nav-item active">
+    <span>🏠</span>
+    首页
+  </div>
+  <div class="nav-item">
+    <span>📋</span>
+    我的任务
+  </div>
+  <div class="nav-item">
+    <span>📊</span>
+    时间线
+  </div>
+  <div class="nav-item">
+    <span>📈</span>
+    统计报表
+  </div>
+
+  <div class="nav-section">项目</div>
+  <div class="nav-project active">🔥 v2.0 产品重构</div>
+  <div class="nav-project">📱 App 开发</div>
+  <div class="nav-project">🎨 设计系统</div>
+  <div class="nav-project">📝 文档中心</div>
+
+  <div class="nav-section">团队</div>
+  <div class="nav-project">👥 成员管理</div>
+</aside>
+
+<!-- 主看板区域 -->
+<main class="main">
+  <header class="header">
+    <div class="breadcrumb">
+      <span>项目</span>
+      <span>/</span>
+      <strong>🔥 v2.0 产品重构</strong>
+    </div>
+    <div class="header-actions">
+      <div class="toolbar">
+        <div class="online-status">
+          <span class="online-dot"></span>
+          <span>3 人在线</span>
+        </div>
+      </div>
+      <button class="btn btn-secondary">🔍 搜索</button>
+      <button class="btn btn-primary">+ 新建任务</button>
+    </div>
+  </header>
+
+  <div class="board">
+    <!-- 待办 -->
+    <div class="column">
+      <div class="column-header">
+        <span class="column-title">
+          <span class="column-dot todo"></span>
+          待办
+          <span class="count">4</span>
+        </span>
+      </div>
+      <div class="card">
+        <div class="card-title">重构用户认证模块</div>
+        <div class="card-desc">迁移到 Supabase Auth，支持 OAuth 登录</div>
+        <div class="card-tags">
+          <span class="tag red">高优</span>
+          <span class="tag.purple">后端</span>
+        </div>
+        <div class="card-meta">
+          <span class="date">1月15日</span>
+          <div class="assignee">张</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">设计新版仪表盘</div>
+        <div class="card-desc">根据新的 UI 规范重新设计首页</div>
+        <div class="card-tags">
+          <span class="tag green">设计</span>
+        </div>
+        <div class="card-meta">
+          <span class="date">1月20日</span>
+          <div class="assignee" style="background: linear-gradient(135deg, #22c55e, #4ade80);">李</div>
+        </div>
+      </div>
+      <div class="add-task-btn">+ 添加任务</div>
+    </div>
+
+    <!-- 进行中 -->
+    <div class="column">
+      <div class="column-header">
+        <span class="column-title">
+          <span class="column-dot progress"></span>
+          进行中
+          <span class="count">2</span>
+        </span>
+      </div>
+      <div class="card" style="border-left: 3px solid #3b82f6;">
+        <div class="card-title">看板拖拽功能优化</div>
+        <div class="card-desc">解决跨列拖拽时的卡顿问题，添加动画效果</div>
+        <div class="card-tags">
+          <span class="tag red">高优</span>
+        </div>
+        <div class="card-meta">
+          <span class="date overdue">今天截止</span>
+          <div class="assignee" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">你</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">添加评论功能</div>
+        <div class="card-tags"></div>
+        <div class="card-meta">
+          <span class="date">明天</span>
+          <div class="assignee" style="background: linear-gradient(135deg, #8b5cf6, #a78bfa);">王</div>
+        </div>
+      </div>
+      <div class="add-task-btn">+ 添加任务</div>
+    </div>
+
+    <!-- 评审中 -->
+    <div class="column">
+      <div class="column-header">
+        <span class="column-title">
+          <span class="column-dot review"></span>
+          评审中
+          <span class="count">1</span>
+        </span>
+      </div>
+      <div class="card">
+        <div class="card-title">用户引导功能</div>
+        <div class="card-meta">
+          <span class="date">明天</span>
+          <div class="assignee" style="background: linear-gradient(135deg, #22c55e, #4ade80);">李</div>
+        </div>
+      </div>
+      <div class="add-task-btn">+ 添加任务</div>
+    </div>
+
+    <!-- 已完成 -->
+    <div class="column">
+      <div class="column-header">
+        <span class="column-title">
+          <span class="column-dot done"></span>
+          已完成
+          <span class="count">2</span>
+        </span>
+      </div>
+      <div class="card" style="opacity: 0.7;">
+        <div class="card-title">数据库表结构设计 ✨</div>
+        <div class="card-meta">
+          <span class="date">昨天</span>
+          <div class="assignee" style="background: linear-gradient(135deg, #22c55e, #4ade80);">李</div>
+        </div>
+      </div>
+      <div class="card" style="opacity: 0.7;">
+        <div class="card-title">Vercel 自动部署配置</div>
+        <div class="card-meta">
+          <span class="date">1月8日</span>
+          <div class="assignee">张</div>
+        </div>
+      </div>
+      <div class="add-task-btn">+ 添加任务</div>
+    </div>
+
+  </div>
+</main>
+
+<!-- 右侧详情抽屉 -->
+<aside class="drawer">
+  <div class="drawer-title">看板拖拽功能优化</div>
+
+  <div class="drawer-section">
+    <div class="drawer-label">状态</div>
+    <div class="drawer-value"><span class="badge">进行中</span></div>
+  </div>
+
+  <div class="drawer-section">
+    <div class="drawer-label">负责人</div>
+    <div class="drawer-value">你</div>
+  </div>
+
+  <div class="drawer-section">
+    <div class="drawer-label">截止日期</div>
+    <div class="drawer-value" style="color: #dc2626; font-weight: 500;">今天截止</div>
+  </div>
+
+  <div class="drawer-section">
+    <div class="drawer-label">描述</div>
+    <div class="drawer-value" style="line-height: 1.6;">解决跨列拖拽时的卡顿问题，添加动画效果，支持移动端触摸操作。需要测试多种浏览器兼容性。</div>
+  </div>
+
+  <div class="drawer-section">
+    <div class="drawer-label">评论 (2)</div>
+    <div class="comment">
+      <div class="comment-author">李四</div>
+      <div class="comment-text">拖拽现在流畅多了，但是移动端好像还有点问题？</div>
+    </div>
+    <div class="comment">
+      <div class="comment-author">你</div>
+      <div class="comment-text">好的，我今天测试一下 iOS Safari 的情况</div>
+    </div>
+  </div>
+</aside>
+
+</body>
+</html>
