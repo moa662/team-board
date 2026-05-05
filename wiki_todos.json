@@ -1,0 +1,82 @@
+[
+  {
+    "id": "1",
+    "title": "旧系统导出字段清单？",
+    "source_file": "scripts\\create_getnote.py",
+    "source": "wiki",
+    "due_date": null,
+    "priority": "medium"
+  },
+  {
+    "id": "2",
+    "title": "新系统期望字段格式？",
+    "source_file": "scripts\\create_getnote.py",
+    "source": "wiki",
+    "due_date": null,
+    "priority": "medium"
+  },
+  {
+    "id": "3",
+    "title": "大概数据量（行数/大小）？",
+    "source_file": "scripts\\create_getnote.py",
+    "source": "wiki",
+    "due_date": null,
+    "priority": "medium"
+  },
+  {
+    "id": "4",
+    "title": "有没有唯一标识字段（会员号/手机号）？",
+    "source_file": "scripts\\create_getnote.py",
+    "source": "wiki",
+    "due_date": null,
+    "priority": "medium"
+  },
+  {
+    "id": "5",
+    "title": "已知的脏数据类型？",
+    "source_file": "scripts\\create_getnote.py",
+    "source": "wiki",
+    "due_date": null,
+    "priority": "medium"
+  },
+  {
+    "id": "6",
+    "title": "1. 导出新旧系统的会员数据",
+    "source_file": "scripts\\create_todo_note.py",
+    "source": "wiki",
+    "due_date": null,
+    "priority": "medium"
+  },
+  {
+    "id": "7",
+    "title": "2. 使用 OpenRefine 做数据探索和标准化",
+    "source_file": "scripts\\create_todo_note.py",
+    "source": "wiki",
+    "due_date": null,
+    "priority": "medium"
+  },
+  {
+    "id": "8",
+    "title": "3. 使用 dedupe 做机器学习去重",
+    "source_file": "scripts\\create_todo_note.py",
+    "source": "wiki",
+    "due_date": null,
+    "priority": "medium"
+  },
+  {
+    "id": "9",
+    "title": "4. 合并重复记录并校验数据质量",
+    "source_file": "scripts\\create_todo_note.py",
+    "source": "wiki",
+    "due_date": null,
+    "priority": "medium"
+  },
+  {
+    "id": "10",
+    "title": "5. 导入到新系统",
+    "source_file": "scripts\\create_todo_note.py",
+    "source": "wiki",
+    "due_date": null,
+    "priority": "medium"
+  }
+]

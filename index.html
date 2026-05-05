@@ -1169,6 +1169,9 @@ async function init() {
     currentUserName = username || '匿名用户';
     document.getElementById('currentUser').textContent = currentUserName;
 
+    // 自动加载外部数据（Wiki 待办）
+    await loadExternalDataFile();
+
     // 加载所有数据
     await loadAllData();
 
@@ -1760,20 +1763,38 @@ let quickLinks = JSON.parse(localStorage.getItem('teamboard_quicklinks') || '[]'
 // 外部来源的任务，统一格式后显示在"我的待办"里
 let externalTasks = JSON.parse(localStorage.getItem('teamboard_external_tasks') || '[]');
 
+// 自动加载外部数据文件
+async function loadExternalDataFile() {
+  try {
+    // 尝试加载 wiki_todos.json（脚本生成的）
+    const response = await fetch('wiki_todos.json?v=' + Date.now());
+    if (response.ok) {
+      const data = await response.json();
+      externalTasks = data.map(t => ({ ...t, source: t.source || 'wiki', sourceIcon: '📚' }));
+      localStorage.setItem('teamboard_external_tasks', JSON.stringify(externalTasks));
+      console.log(`✅ 自动加载了 ${externalTasks.length} 条 Wiki 待办`);
+      return true;
+    }
+  } catch (e) {
+    console.log('没有外部数据文件，跳过自动加载');
+  }
+  return false;
+}
+
 // 数据源配置
 const dataSources = {
-  // 数据源1：手动导入（JSON 格式）
-  manual: {
-    name: '手动导入',
-    icon: '📥',
-    fetch: async () => externalTasks,
+  // 数据源1：Wiki 笔记
+  wiki: {
+    name: '我的 Wiki',
+    icon: '📚',
+    fetch: async () => externalTasks.filter(t => t.source === 'wiki' || t.source_file),
   },
 
   // 数据源2：Get 笔记（预留，等有 API 了再写）
   getNote: {
     name: 'Get 笔记',
     icon: '📝',
-    fetch: async () => [], // 等有 API 了再实现
+    fetch: async () => [],
   },
 
   // 数据源3：GitHub Issues（预留）
