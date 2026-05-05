@@ -1756,18 +1756,79 @@ function initRealtime() {
 let quickLinks = JSON.parse(localStorage.getItem('teamboard_quicklinks') || '[]');
 
 // ========== 数据源插件架构（预留对接位） ==========
+// ========== 数据源插件系统 ==========
+// 外部来源的任务，统一格式后显示在"我的待办"里
+let externalTasks = JSON.parse(localStorage.getItem('teamboard_external_tasks') || '[]');
+
+// 数据源配置
 const dataSources = {
-  // 预留：以后直接在这里添加对接
-  // github: async () => { /* GitHub Issues 对接 */ },
-  // feishu: async () => { /* 飞书任务对接 */ },
-  // jira: async () => { /* Jira 对接 */ },
-  // custom: async () => { /* 自定义数据库对接 */ },
+  // 数据源1：手动导入（JSON 格式）
+  manual: {
+    name: '手动导入',
+    icon: '📥',
+    fetch: async () => externalTasks,
+  },
+
+  // 数据源2：Get 笔记（预留，等有 API 了再写）
+  getNote: {
+    name: 'Get 笔记',
+    icon: '📝',
+    fetch: async () => [], // 等有 API 了再实现
+  },
+
+  // 数据源3：GitHub Issues（预留）
+  github: {
+    name: 'GitHub',
+    icon: '🐙',
+    fetch: async () => [],
+  },
 };
 
-async function fetchAllDataSource() {
-  // 以后对接数据源后，这里会自动拉取所有平台的数据
-  // 然后合并到本地任务列表
-  return [];
+// 拉取所有数据源
+async function fetchAllDataSources() {
+  const all = [];
+  for (const [key, source] of Object.entries(dataSources)) {
+    try {
+      const items = await source.fetch();
+      items.forEach(item => {
+        all.push({
+          ...item,
+          id: `ext_${key}_${item.id}`,
+          source: key,
+          sourceName: source.name,
+          sourceIcon: source.icon,
+          isExternal: true,
+        });
+      });
+    } catch (e) {
+      console.error(`数据源 ${key} 拉取失败:`, e);
+    }
+  }
+  return all;
+}
+
+// 打开导入弹窗
+function openImportModal() {
+  const json = prompt('粘贴 JSON 格式的待办列表：\n\n格式示例：\n[{"id":"1","title":"任务标题","due_date":"2024-05-10"}]');
+  if (!json) return;
+
+  try {
+    const data = JSON.parse(json);
+    externalTasks = [...externalTasks, ...data];
+    localStorage.setItem('teamboard_external_tasks', JSON.stringify(externalTasks));
+    renderDashboard();
+    alert(`✅ 成功导入 ${data.length} 条任务！`);
+  } catch (e) {
+    alert('JSON 格式错误！');
+  }
+}
+
+// 清除外部任务
+function clearExternalTasks() {
+  if (!confirm('确定清空所有外部导入的任务吗？')) return;
+  externalTasks = [];
+  localStorage.removeItem('teamboard_external_tasks');
+  renderDashboard();
 }
 
 // ========== 页面切换 ==========
@@ -1818,7 +1879,7 @@ async function renderDashboard() {
   renderProjectCards();
 
   // 2. 渲染我的待办
-  renderMyTasks();
+  await renderMyTasks();
 
   // 3. 渲染快捷链接
   renderQuickLinks();
@@ -1867,33 +1928,69 @@ function renderProjectCards() {
   }
 }
 
-function renderMyTasks() {
+async function renderMyTasks() {
   const container = document.getElementById('myTasks');
 
-  // 筛选分配给我的任务（跨所有项目）
-  const myTasks = tasks.filter(t => t.assignee === currentUserName);
+  // 拉取外部数据源
+  const externalData = await fetchAllDataSources();
 
-  if (myTasks.length === 0) {
+  // 合并：本地任务 + 外部任务
+  const myLocalTasks = tasks.filter(t => t.assignee === currentUserName);
+  const allTasks = [
+    ...myLocalTasks.map(t => ({ ...t, source: 'teamboard', sourceName: '本地', sourceIcon: '📋' })),
+    ...externalData
+  ];
+
+  if (allTasks.length === 0) {
     container.innerHTML = `
-      <div style="text-align: center; color: #a1a1aa; padding: 40px;">
-        暂无分配给你的任务
+      <div style="text-align: center; color: #a1a1aa; padding: 30px 20px 10px;">
+        暂无待办任务
+      </div>
+      <div style="text-align: center; padding-bottom: 20px;">
+        <button onclick="openImportModal()" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">
+          📥 导入外部待办
+        </button>
+        <button onclick="clearExternalTasks()" style="margin-left: 8px; padding: 8px 16px; background: #f3f4f6; color: #374151; border: none; border-radius: 6px; cursor: pointer;">
+          清空外部
+        </button>
       </div>
     `;
     return;
   }
 
-  container.innerHTML = myTasks.map(task => {
+  container.innerHTML = allTasks.map(task => {
     const project = projects.find(p => p.id === task.project_id);
+    const isExternal = task.isExternal;
+
     return `
-      <div class="task-item" onclick="openTaskDetail('${task.id}')">
-        <div class="task-item-check" onclick="event.stopPropagation(); quickCompleteTask('${task.id}')"></div>
+      <div class="task-item" ${isExternal ? '' : `onclick="openTaskDetail('${task.id}')"`}>
+        <div class="task-item-check" ${isExternal ? 'style="opacity: 0.3"' : `onclick="event.stopPropagation(); quickCompleteTask('${task.id}')"`}></div>
         <div class="task-item-content">
-          <div class="task-item-title">${task.title}</div>
-          <div class="task-item-project">${project?.name || '未知项目'}</div>
+          <div class="task-item-title">
+            ${task.sourceIcon} ${task.title}
+          </div>
+          <div class="task-item-project" style="display: flex; justify-content: space-between;">
+            <span>${project?.name || task.sourceName || '未知来源'}</span>
+            ${isExternal ? '<span style="color: #3b82f6; font-size: 11px;">外部</span>' : ''}
+          </div>
         </div>
       </div>
     `;
   }).join('');
+
+  // 底部加导入按钮
+  container.innerHTML += `
+    <div style="padding: 12px; text-align: center; border-top: 1px solid #f3f4f6;">
+      <button onclick="openImportModal()" style="font-size: 12px; padding: 6px 12px; background: #f3f4f6; color: #374151; border: none; border-radius: 6px; cursor: pointer;">
+        📥 导入外部待办
+      </button>
+      ${externalData.length > 0 ? `
+        <button onclick="clearExternalTasks()" style="margin-left: 8px; font-size: 12px; padding: 6px 12px; background: #fef2f2; color: #dc2626; border: none; border-radius: 6px; cursor: pointer;">
+          清空外部 (${externalData.length})
+        </button>
+      ` : ''}
+    </div>
+  `;
 }
 
 function renderQuickLinks() {
