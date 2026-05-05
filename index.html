@@ -672,6 +672,218 @@ body {
   cursor: pointer;
 }
 
+/* ========== 仪表盘 ========== */
+.dashboard-section {
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 16px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.project-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.project-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.project-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.project-card-icon {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.project-card-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 8px;
+}
+
+.project-card-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  color: #71717a;
+}
+
+.project-card-progress {
+  margin-top: 12px;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.project-card-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #6366f1);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.task-list {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+.task-item {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.task-item:hover {
+  background: #fafafa;
+}
+
+.task-item:last-child {
+  border-bottom: none;
+}
+
+.task-item-check {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d1d5db;
+  border-radius: 4px;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.task-item-check:hover {
+  border-color: #3b82f6;
+}
+
+.task-item-content {
+  flex: 1;
+}
+
+.task-item-title {
+  font-size: 14px;
+  color: #1d1d1f;
+  font-weight: 500;
+}
+
+.task-item-project {
+  font-size: 12px;
+  color: #71717a;
+  margin-top: 2px;
+}
+
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.quick-link-item {
+  background: white;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quick-link-item:hover {
+  border-color: rgba(59, 130, 246, 0.2);
+  transform: translateY(-1px);
+}
+
+.quick-link-icon {
+  font-size: 20px;
+}
+
+.quick-link-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1d1d1f;
+}
+
+.due-tasks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.due-task-item {
+  background: white;
+  border-radius: 8px;
+  padding: 14px 16px;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-left: 3px solid #f59e0b;
+}
+
+.due-task-item.today {
+  border-left-color: #ef4444;
+}
+
+.due-task-item.tomorrow {
+  border-left-color: #f59e0b;
+}
+
+.due-task-item.later {
+  border-left-color: #3b82f6;
+}
+
+.due-task-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1d1d1f;
+  margin-bottom: 4px;
+}
+
+.due-task-date {
+  font-size: 12px;
+  color: #71717a;
+}
+
+.workbench-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.workbench-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
 /* ========== 配置弹窗 ========== */
 .setup-modal {
   position: fixed;
@@ -771,23 +983,23 @@ body {
 
 <!-- ========== 左侧导航 ========== -->
 <aside class="sidebar">
-  <div class="logo">🔀 TeamBoard</div>
+  <div class="logo">🎯 TeamBoard</div>
 
-  <div class="nav-item active" onclick="showPage('board')">
-    <span>🏠</span>
-    看板
-  </div>
-  <div class="nav-item" onclick="showPage('timeline')">
+  <div class="nav-item active" onclick="showPage('dashboard')">
     <span>📊</span>
-    时间线
+    仪表盘
+  </div>
+  <div class="nav-item" onclick="showPage('board')">
+    <span>📋</span>
+    任务看板
+  </div>
+  <div class="nav-item" onclick="showPage('workbench')">
+    <span>⚡</span>
+    快捷工作台
   </div>
   <div class="nav-item" onclick="showPage('activity')">
     <span>📜</span>
     操作历史
-  </div>
-  <div class="nav-item" onclick="showPage('my-tasks')">
-    <span>📋</span>
-    我的任务
   </div>
 
   <div class="nav-section">项目</div>
@@ -803,9 +1015,7 @@ body {
 <main class="main">
   <header class="header">
     <div class="breadcrumb">
-      <span>项目</span>
-      <span>/</span>
-      <strong id="currentProjectName">加载中...</strong>
+      <span id="breadcrumbPath">仪表盘</span>
     </div>
     <div class="header-actions">
       <div class="online-status">
@@ -817,8 +1027,60 @@ body {
     </div>
   </header>
 
-  <div class="board" id="boardContainer">
-    <!-- 列和卡片动态生成 -->
+  <!-- ========== 仪表盘首页 ========== -->
+  <div class="page-container" id="dashboardPage">
+    <!-- 项目总览卡片 -->
+    <div class="dashboard-section">
+      <h3 class="section-title">📊 项目总览</h3>
+      <div class="project-cards" id="projectCards">
+        <!-- 项目卡片动态生成 -->
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <!-- 我的待办 -->
+      <div class="dashboard-section">
+        <h3 class="section-title">📋 我的待办</h3>
+        <div class="task-list" id="myTasks">
+          <!-- 任务列表动态生成 -->
+        </div>
+      </div>
+
+      <!-- 快捷工作台 -->
+      <div class="dashboard-section">
+        <h3 class="section-title">⚡ 快捷工作台</h3>
+        <div class="quick-links" id="quickLinks">
+          <!-- 快捷链接动态生成 -->
+        </div>
+        <button class="btn btn-secondary" style="margin-top: 16px; width: 100%;" onclick="openQuickLinkModal()">+ 添加快捷方式</button>
+      </div>
+    </div>
+
+    <!-- 本周到期 -->
+    <div class="dashboard-section" style="margin-top: 24px;">
+      <h3 class="section-title">⏰ 本周到期</h3>
+      <div class="due-tasks" id="dueTasks">
+        <!-- 到期任务动态生成 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 任务看板页面 -->
+  <div class="page-container hidden" id="boardPage">
+    <div class="board" id="boardContainer">
+      <!-- 列和卡片动态生成 -->
+    </div>
+  </div>
+
+  <!-- 快捷工作台页面 -->
+  <div class="page-container hidden" id="workbenchPage">
+    <div class="page-header">
+      <h2>⚡ 快捷工作台</h2>
+      <button class="btn btn-primary" onclick="openQuickLinkModal()">+ 添加快捷方式</button>
+    </div>
+    <div class="workbench-grid" id="workbenchGrid">
+      <!-- 工作台卡片动态生成 -->
+    </div>
   </div>
 
   <!-- 操作历史页面 -->
@@ -907,15 +1169,13 @@ async function init() {
     currentUserName = username || '匿名用户';
     document.getElementById('currentUser').textContent = currentUserName;
 
-    // 加载项目列表
-    await loadProjects();
+    // 加载所有数据
+    await loadAllData();
 
     // 如果没有项目，创建默认项目
     if (projects.length === 0) {
       await createDefaultProject();
-    } else {
-      currentProjectId = projects[0].id;
-      await selectProject(currentProjectId);
+      await loadAllData();
     }
 
     // 隐藏配置弹窗
@@ -923,6 +1183,9 @@ async function init() {
 
     // 启动实时订阅
     initRealtime();
+
+    // 默认显示仪表盘
+    showPage('dashboard');
   } catch (e) {
     console.error('初始化失败:', e);
     alert('连接 Supabase 失败，请检查配置');
@@ -1049,30 +1312,29 @@ async function createDefaultProject() {
 
 // ========== 看板数据 ==========
 async function loadBoardData() {
-  if (!currentProjectId) return;
-
   try {
-    // 加载列
-    const { data: cols, error: colErr } = await sbClient
+    // 加载所有列（用于仪表盘跨项目统计）
+    const { data: allCols, error: allColErr } = await sbClient
       .from('columns')
       .select('*')
-      .eq('project_id', currentProjectId)
       .order('order', { ascending: true });
 
-    if (colErr) throw colErr;
-    columns = cols || [];
+    if (allColErr) throw allColErr;
+    columns = allCols || [];
 
-    // 加载任务
-    const { data: tasksData, error: taskErr } = await sbClient
+    // 加载所有任务（用于仪表盘跨项目统计）
+    const { data: allTasks, error: allTaskErr } = await sbClient
       .from('tasks')
       .select('*')
-      .eq('project_id', currentProjectId)
       .order('created_at', { ascending: false });
 
-    if (taskErr) throw taskErr;
-    tasks = tasksData || [];
+    if (allTaskErr) throw allTaskErr;
+    tasks = allTasks || [];
 
-    renderBoard();
+    // 如果有当前选中项目，渲染看板
+    if (currentProjectId) {
+      renderBoard();
+    }
   } catch (e) {
     console.error('加载看板数据失败:', e);
   }
@@ -1082,11 +1344,16 @@ async function loadBoardData() {
 function renderBoard() {
   const container = document.getElementById('boardContainer');
 
+  // 只渲染当前项目的列
+  const projectColumns = columns.filter(c => c.project_id === currentProjectId);
+  // 只使用当前项目的任务
+  const projectTasks = tasks.filter(t => t.project_id === currentProjectId);
+
   let html = '';
 
   // 渲染每一列
-  columns.forEach(col => {
-    const colTasks = tasks.filter(t => t.column_id === col.id);
+  projectColumns.forEach(col => {
+    const colTasks = projectTasks.filter(t => t.column_id === col.id);
 
     html += `
       <div class="column" data-column-id="${col.id}">
@@ -1464,9 +1731,14 @@ function initRealtime() {
     .channel('teamboard-realtime')
     .on('postgres_changes',
       { event: '*', schema: 'public', table: 'tasks' },
-      (payload) => {
+      async (payload) => {
         console.log('任务变更:', payload);
-        loadBoardData();
+        await loadAllData();
+        // 如果在仪表盘，刷新仪表盘
+        const dashboardPage = document.getElementById('dashboardPage');
+        if (!dashboardPage.classList.contains('hidden')) {
+          renderDashboard();
+        }
       }
     )
     .on('postgres_changes',
@@ -1480,6 +1752,25 @@ function initRealtime() {
 }
 
 // ========== 页面切换 ==========
+// ========== 快捷链接数据 ==========
+let quickLinks = JSON.parse(localStorage.getItem('teamboard_quicklinks') || '[]');
+
+// ========== 数据源插件架构（预留对接位） ==========
+const dataSources = {
+  // 预留：以后直接在这里添加对接
+  // github: async () => { /* GitHub Issues 对接 */ },
+  // feishu: async () => { /* 飞书任务对接 */ },
+  // jira: async () => { /* Jira 对接 */ },
+  // custom: async () => { /* 自定义数据库对接 */ },
+};
+
+async function fetchAllDataSource() {
+  // 以后对接数据源后，这里会自动拉取所有平台的数据
+  // 然后合并到本地任务列表
+  return [];
+}
+
+// ========== 页面切换 ==========
 function showPage(page) {
   // 更新导航状态
   document.querySelectorAll('.nav-item').forEach(item => {
@@ -1489,20 +1780,242 @@ function showPage(page) {
     }
   });
 
-  // 切换页面显示
-  const boardContainer = document.getElementById('boardContainer');
-  const activityPage = document.getElementById('activityPage');
+  // 面包屑导航
+  const breadcrumbNames = {
+    dashboard: '仪表盘',
+    board: '任务看板',
+    workbench: '快捷工作台',
+    activity: '操作历史'
+  };
+  document.getElementById('breadcrumbPath').textContent = breadcrumbNames[page] || page;
 
-  if (page === 'board') {
-    boardContainer.classList.remove('hidden');
-    activityPage.classList.add('hidden');
+  // 隐藏所有页面
+  document.querySelectorAll('.page-container, .board').forEach(el => {
+    el.classList.add('hidden');
+  });
+
+  // 显示目标页面
+  if (page === 'dashboard') {
+    document.getElementById('dashboardPage').classList.remove('hidden');
+    renderDashboard();
+  } else if (page === 'board') {
+    document.getElementById('boardPage').classList.remove('hidden');
+    document.getElementById('boardContainer').classList.remove('hidden');
+  } else if (page === 'workbench') {
+    document.getElementById('workbenchPage').classList.remove('hidden');
+    renderWorkbench();
   } else if (page === 'activity') {
-    boardContainer.classList.add('hidden');
-    activityPage.classList.remove('hidden');
+    document.getElementById('activityPage').classList.remove('hidden');
     loadActivity();
   } else {
     alert('功能开发中...');
   }
+}
+
+// ========== 仪表盘渲染 ==========
+async function renderDashboard() {
+  // 1. 渲染项目卡片
+  renderProjectCards();
+
+  // 2. 渲染我的待办
+  renderMyTasks();
+
+  // 3. 渲染快捷链接
+  renderQuickLinks();
+
+  // 4. 渲染本周到期
+  renderDueTasks();
+
+  // 5. 拉取外部数据源（预留）
+  const externalData = await fetchAllDataSource();
+  console.log('外部数据源:', externalData);
+}
+
+function renderProjectCards() {
+  const container = document.getElementById('projectCards');
+
+  container.innerHTML = projects.map(project => {
+    const projectTasks = tasks.filter(t => t.project_id === project.id);
+    const total = projectTasks.length;
+    const done = projectTasks.filter(t => {
+      const col = columns.find(c => c.id === t.column_id);
+      return col && col.name.includes('完成');
+    }).length;
+    const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+
+    return `
+      <div class="project-card" onclick="selectProject('${project.id}')">
+        <div class="project-card-icon">${project.icon || '📁'}</div>
+        <div class="project-card-name">${project.name}</div>
+        <div class="project-card-stats">
+          <span>✅ ${done}/${total}</span>
+          <span>📝 ${total - done} 待办</span>
+        </div>
+        <div class="project-card-progress">
+          <div class="project-card-progress-bar" style="width: ${progress}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  if (projects.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1/-1; text-align: center; color: #a1a1aa; padding: 40px;">
+        暂无项目，点击左侧"新建项目"开始
+      </div>
+    `;
+  }
+}
+
+function renderMyTasks() {
+  const container = document.getElementById('myTasks');
+
+  // 筛选分配给我的任务（跨所有项目）
+  const myTasks = tasks.filter(t => t.assignee === currentUserName);
+
+  if (myTasks.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; color: #a1a1aa; padding: 40px;">
+        暂无分配给你的任务
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = myTasks.map(task => {
+    const project = projects.find(p => p.id === task.project_id);
+    return `
+      <div class="task-item" onclick="openTaskDetail('${task.id}')">
+        <div class="task-item-check" onclick="event.stopPropagation(); quickCompleteTask('${task.id}')"></div>
+        <div class="task-item-content">
+          <div class="task-item-title">${task.title}</div>
+          <div class="task-item-project">${project?.name || '未知项目'}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderQuickLinks() {
+  const container = document.getElementById('quickLinks');
+
+  if (quickLinks.length === 0) {
+    // 默认快捷链接
+    const defaults = [
+      { name: 'GitHub', icon: '🐙', url: 'https://github.com' },
+      { name: 'Figma', icon: '🎨', url: 'https://figma.com' },
+      { name: 'Supabase', icon: '🗄️', url: 'https://supabase.com' },
+      { name: 'Vercel', icon: '▲', url: 'https://vercel.com' },
+    ];
+    quickLinks = defaults;
+  }
+
+  container.innerHTML = quickLinks.map(link => `
+    <div class="quick-link-item" onclick="window.open('${link.url}', '_blank')">
+      <span class="quick-link-icon">${link.icon}</span>
+      <span class="quick-link-name">${link.name}</span>
+    </div>
+  `).join('');
+}
+
+function renderDueTasks() {
+  const container = document.getElementById('dueTasks');
+  const now = new Date();
+  const weekEnd = new Date(now.getTime() + 7 * 86400000);
+
+  // 筛选本周到期的任务
+  const dueTasks = tasks.filter(t => {
+    if (!t.due_date) return false;
+    const due = new Date(t.due_date);
+    return due >= now && due <= weekEnd;
+  });
+
+  if (dueTasks.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1/-1; text-align: center; color: #a1a1aa; padding: 40px;">
+        🎉 本周没有即将到期的任务
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = dueTasks.map(task => {
+    const dueDate = new Date(task.due_date);
+    const daysLeft = Math.ceil((dueDate - now) / 86400000);
+    let timeClass = 'later';
+    let timeText = `${daysLeft} 天后`;
+
+    if (daysLeft <= 0) {
+      timeClass = 'today';
+      timeText = '今天到期 ⚠️';
+    } else if (daysLeft === 1) {
+      timeClass = 'tomorrow';
+      timeText = '明天到期';
+    }
+
+    const project = projects.find(p => p.id === task.project_id);
+
+    return `
+      <div class="due-task-item ${timeClass}" onclick="openTaskDetail('${task.id}')">
+        <div class="due-task-title">${task.title}</div>
+        <div class="due-task-date">${project?.name || '未知项目'} · ${timeText}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function quickCompleteTask(taskId) {
+  // 快速完成任务（直接移动到"已完成"列）
+  try {
+    const doneColumn = columns.find(c => c.name.includes('完成'));
+    if (doneColumn) {
+      await sbClient.from('tasks').update({
+        column_id: doneColumn.id
+      }).eq('id', taskId);
+
+      logActivity('update', `完成了任务`, taskId);
+      await loadAllData();
+      renderDashboard();
+    } else {
+      alert('请先创建"已完成"列');
+    }
+  } catch (e) {
+    console.error('快速完成失败:', e);
+  }
+}
+
+// ========== 快捷工作台 ==========
+function renderWorkbench() {
+  const container = document.getElementById('workbenchGrid');
+  // 以后可以扩展更多工作台功能
+  container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #a1a1aa; padding: 60px;">🚀 工作台功能开发中...</div>';
+}
+
+function openQuickLinkModal() {
+  alert('快捷链接管理功能开发中...');
+}
+
+// ========== 项目选择 ==========
+async function selectProject(projectId) {
+  currentProjectId = projectId;
+  const project = projects.find(p => p.id === projectId);
+  if (project) {
+    document.getElementById('breadcrumbPath').textContent = `项目 / ${project.name}`;
+  }
+  renderProjectList();
+
+  // 切换到看板页面
+  showPage('board');
+  await loadBoardData();
+}
+
+// ========== 加载所有数据 ==========
+async function loadAllData() {
+  await loadProjects();
+  if (projects.length > 0 && !currentProjectId) {
+    currentProjectId = projects[0].id;
+  }
+  await loadBoardData();
 }
 
 // ========== 操作历史记录 ==========
