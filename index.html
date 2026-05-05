@@ -877,6 +877,7 @@ body {
 let sbClient = null;
 let currentProjectId = null;
 let currentTaskId = null;
+let currentColumnId = null;
 let currentUserName = null;
 let columns = [];
 let tasks = [];
@@ -1183,6 +1184,9 @@ function openTaskModal(columnId = null) {
     currentColumnId = columnId;
   } else if (columns.length > 0) {
     currentColumnId = columns[0].id;
+  } else {
+    alert('请先创建看板列');
+    return;
   }
 
   document.getElementById('drawerTitle').textContent = '新建任务';
