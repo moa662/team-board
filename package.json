@@ -1,7 +1,9 @@
 {
   "name": "team-board",
   "version": "2.1.0",
-  "type": "module",
+  "engines": {
+    "node": "18.x"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.42.0"
   }
