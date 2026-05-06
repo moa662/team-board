@@ -2,7 +2,7 @@
 // Vercel 云函数 - 定时抓取火山方舟用量
 // 配置：每小时自动运行一次
 
-import { createHmac } from 'crypto'
+const { createHmac } = require('crypto')
 
 // ========== 火山引擎签名算法 ==========
 function hmacSha256(key, msg) {
@@ -22,7 +22,7 @@ function getSignature(sk, date, region, service, stringToSign) {
 }
 
 // ========== 主函数 ==========
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // 从环境变量读取配置
   const AK = process.env.VOLCENGINE_AK
   const SK = process.env.VOLCENGINE_SK
@@ -122,7 +122,7 @@ export default async function handler(req, res) {
     console.log(`用量汇总: 输入 ${promptTokens}, 输出 ${completionTokens}, 总计 ${totalTokens}`)
 
     // 写入 Supabase
-    const { createClient } = await import('@supabase/supabase-js')
+    const { createClient } = require('@supabase/supabase-js')
     const sbClient = createClient(SUPABASE_URL, SUPABASE_KEY)
 
     // 先删旧数据
