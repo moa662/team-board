@@ -4,6 +4,53 @@
 
 ---
 
+## 📅 2024-05-05 | v2.1 火山方舟用量监控完成
+
+### ✅ 今日完成
+
+| 模块 | 内容 |
+|------|------|
+| 用量监控卡片 | 仪表盘顶部新增 CodingPlan 用量卡片，显示总用量、进度条、输入/输出 Token 数 |
+| 云函数 | `api/fetch-volcengine-usage.js` - Vercel 云函数，调用火山引擎 API 抓取用量 |
+| 定时任务 | `vercel.json` 配置，**每小时自动运行一次**，数据自动更新 |
+| 实时订阅 | 新增 `metrics` 表监听，用量数据变化自动刷新仪表盘 |
+| 数据库 | 新增 `metrics` 表，存储各个数据源的用量数据 |
+
+### 📁 新增文件
+- `api/fetch-volcengine-usage.js` - 火山方舟用量抓取云函数
+- `vercel.json` - Vercel 配置（定时任务）
+
+### 🚀 当前部署状态
+- ✅ 代码已提交到本地 Git（commit: aa8bc5b）
+- ⏳ 待推送到 GitHub master 分支（网络问题，稍后重试）
+- ✅ Vercel 环境变量已配置完成
+- ⏳ 待测试：云函数签名、API 调用、定时任务
+
+### 🔐 环境变量（已在 Vercel 配置）
+| 变量名 | 说明 |
+|--------|------|
+| `VOLCENGINE_AK` | 火山引擎 Access Key |
+| `VOLCENGINE_SK` | 火山引擎 Secret Key |
+| `VOLCENGINE_API_KEY_ID` | 方舟 API Key ID |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase URL |
+| `SUPABASE_SERVICE_KEY` | Supabase 服务端密钥 |
+
+### 🧪 待测试
+1. 云函数能否正常调用火山引擎 API（签名算法是否正确）
+2. 数据能否正常写入 Supabase metrics 表
+3. 仪表盘能否自动刷新显示用量数据
+4. 定时任务能否每小时自动运行
+
+### ⏭️ 下阶段
+1. 推送代码部署，测试云函数
+2. 用量告警功能（超过 80% 提示）
+3. 历史用量趋势图
+
+### 🐛 已知问题
+- 网络连接不稳定，GitHub 推送偶尔失败
+
+---
+
 ## 📅 2024-05-05 | v2.0 仪表盘版重构完成
 
 ### ✅ 今日完成
