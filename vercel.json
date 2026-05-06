@@ -1,14 +1,20 @@
 {
   "version": 2,
+  "functions": {
+    "api/*.js": {
+      "runtime": "@vercel/node@3.0.0"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/fetch-volcengine-usage",
+      "dest": "api/fetch-volcengine-usage.js"
+    }
+  ],
   "crons": [
     {
       "path": "/api/fetch-volcengine-usage",
       "schedule": "0 * * * *"
     }
-  ],
-  "functions": {
-    "api/*.js": {
-      "runtime": "@vercel/node@3"
-    }
-  }
+  ]
 }
