@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>真实功能示例 - Glassmorphism 风格</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    * {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background: #000000;
+    }
+
+    .app-bg {
+      position: relative;
+      background: #000000;
+      overflow: hidden;
+    }
+
+    .app-bg::before {
+      content: '';
+      position: absolute;
+      top: -180px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1000px;
+      height: 600px;
+      background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.35) 0%, rgba(59, 130, 246, 0.18) 40%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(32px);
+      -webkit-backdrop-filter: blur(32px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    }
+
+    .glass-card-hover:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+      box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 12px 32px rgba(139, 92, 246, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .bottom-nav {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(32px);
+      -webkit-backdrop-filter: blur(32px);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      border-radius: 56px;
+      overflow: hidden;
+      box-shadow: 0 50px 100px -20px rgba(139, 92, 246, 0.3), 0 30px 60px -30px rgba(0, 0, 0, 0.5);
+      position: relative;
+      border: 8px solid #1a1a1a;
+    }
+
+    .status-bar {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .safe-bottom {
+      height: 34px;
+    }
+
+    .tab-active {
+      color: #8b5cf6;
+    }
+
+    .tab-inactive {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .time-slot-past {
+      opacity: 0.4;
+    }
+
+    .time-slot-active {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 182, 212, 0.15) 100%);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+  </style>
+</head>
+<body class="min-h-screen py-12 px-4 flex flex-col items-center">
+  <h1 class="text-3xl font-extrabold text-white mb-2">真实功能演示</h1>
+  <p class="text-slate-400 mb-8">调整了字体大小，展示真实使用场景</p>
+
+  <div class="phone-frame app-bg">
+    <!-- 顶部状态栏 -->
+    <div class="status-bar relative z-10">
+      <span>9:41</span>
+      <div class="flex items-center gap-1">
+        <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
+          <path d="M12 3C7.46 3 3.34 5.78 1.18 10c2.16 4.22 6.28 7 10.82 7s8.66-2.78 10.82-7C20.66 5.78 16.54 3 12 3zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+        </svg>
+        <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
+          <path d="M2 22h20V2L2 22zm18-2h-6V9.83l6-6V20z"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="relative z-10 px-5 pb-24 h-full overflow-y-auto">
+      <!-- 标题区 -->
+      <div class="mb-6">
+        <h1 class="text-2xl font-extrabold text-white">排课日历</h1>
+        <p class="text-slate-400 text-sm mt-1">5月11日 · 今天有 3 节课</p>
+      </div>
+
+      <!-- 月份选择器 -->
+      <div class="glass-card rounded-3xl p-4 mb-5 flex items-center justify-between">
+        <button class="w-10 h-10 rounded-2xl btn-secondary flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <span class="text-white font-bold">2026年5月</span>
+        <button class="w-10 h-10 rounded-2xl btn-secondary flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- 星期选择 -->
+      <div class="flex justify-between mb-5">
+        <div class="w-11 h-14 rounded-2xl btn-secondary flex flex-col items-center justify-center">
+          <span class="text-xs text-slate-400">一</span>
+          <span class="text-white font-bold text-sm">5</span>
+        </div>
+        <div class="w-11 h-14 rounded-2xl btn-secondary flex flex-col items-center justify-center">
+          <span class="text-xs text-slate-400">二</span>
+          <span class="text-white font-bold text-sm">6</span>
+        </div>
+        <div class="w-11 h-14 rounded-2xl btn-secondary flex flex-col items-center justify-center">
+          <span class="text-xs text-slate-400">三</span>
+          <span class="text-white font-bold text-sm">7</span>
+        </div>
+        <div class="w-11 h-14 rounded-2xl btn-secondary flex flex-col items-center justify-center">
+          <span class="text-xs text-slate-400">四</span>
+          <span class="text-white font-bold text-sm">8</span>
+        </div>
+        <div class="w-11 h-14 rounded-2xl btn-secondary flex flex-col items-center justify-center">
+          <span class="text-xs text-slate-400">五</span>
+          <span class="text-white font-bold text-sm">9</span>
+        </div>
+        <div class="w-11 h-14 rounded-3xl btn-primary flex flex-col items-center justify-center">
+          <span class="text-xs text-white/80">六</span>
+          <span class="text-white font-bold text-sm">10</span>
+        </div>
+        <div class="w-11 h-14 rounded-2xl btn-secondary flex flex-col items-center justify-center">
+          <span class="text-xs text-slate-400">日</span>
+          <span class="text-white font-bold text-sm">11</span>
+        </div>
+      </div>
+
+      <!-- 今日概览卡片 -->
+      <div class="glass-card rounded-3xl p-5 mb-5 animate-fade-in" style="animation-delay: 0.1s">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-white font-bold text-base">今日概览</h3>
+          <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-full">
+            已完成 2 节
+          </span>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div class="text-center">
+            <div class="text-2xl font-extrabold text-white">3</div>
+            <div class="text-slate-400 text-xs">总课时</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-extrabold text-emerald-400">¥900</div>
+            <div class="text-slate-400 text-xs">今日收入</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-extrabold text-violet-400">2</div>
+            <div class="text-slate-400 text-xs">待上课</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 课程列表 -->
+      <h3 class="text-white font-bold text-base mb-4">今日课程</h3>
+
+      <!-- 课程 1 - 已完成 -->
+      <div class="glass-card rounded-3xl p-4 mb-3 time-slot-past animate-fade-in" style="animation-delay: 0.2s">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center">
+            <span class="text-xl">✅</span>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center justify-between">
+              <h4 class="text-white font-semibold">张三</h4>
+              <span class="text-emerald-400 text-xs font-bold">已完成</span>
+            </div>
+            <div class="flex items-center gap-3 mt-1">
+              <span class="text-slate-400 text-xs">09:00 - 10:00</span>
+              <span class="text-slate-500 text-xs">·</span>
+              <span class="text-slate-400 text-xs">60 分钟</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 课程 2 - 进行中 -->
+      <div class="glass-card time-slot-active rounded-3xl p-4 mb-3 animate-fade-in" style="animation-delay: 0.3s">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+            <span class="text-xl">🔥</span>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center justify-between">
+              <h4 class="text-white font-semibold">李四</h4>
+              <span class="text-cyan-400 text-xs font-bold">进行中</span>
+            </div>
+            <div class="flex items-center gap-3 mt-1">
+              <span class="text-slate-300 text-xs">10:30 - 11:30</span>
+              <span class="text-slate-500 text-xs">·</span>
+              <span class="text-slate-300 text-xs">60 分钟</span>
+            </div>
+          </div>
+        </div>
+        <button class="w-full mt-3 py-2.5 btn-primary rounded-xl text-white text-sm font-semibold">
+          完成课程
+        </button>
+      </div>
+
+      <!-- 课程 3 - 待上课 -->
+      <div class="glass-card rounded-3xl p-4 mb-3 animate-fade-in glass-card-hover transition-all cursor-pointer" style="animation-delay: 0.4s">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-violet-500/20 flex items-center justify-center">
+            <span class="text-xl">⏰</span>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center justify-between">
+              <h4 class="text-white font-semibold">王五</h4>
+              <span class="text-violet-400 text-xs font-bold">待上课</span>
+            </div>
+            <div class="flex items-center gap-3 mt-1">
+              <span class="text-slate-400 text-xs">14:00 - 15:00</span>
+              <span class="text-slate-500 text-xs">·</span>
+              <span class="text-slate-400 text-xs">60 分钟</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 添加课程按钮 -->
+      <button class="w-full py-4 btn-secondary rounded-3xl text-white font-semibold flex items-center justify-center gap-2 mt-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        添加课程
+      </button>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav absolute bottom-0 left-0 right-0 z-20">
+      <div class="flex justify-around py-3">
+        <button class="flex flex-col items-center gap-1 tab-active">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          <span class="text-xs font-medium">排课</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 tab-inactive">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          <span class="text-xs font-medium">会员</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 tab-inactive">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span class="text-xs font-medium">收支</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 tab-inactive">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          <span class="text-xs font-medium">导出</span>
+        </button>
+      </div>
+      <div class="safe-bottom"></div>
+    </div>
+  </div>
+
+  <div class="mt-8 text-center max-w-md">
+    <div class="glass-card rounded-3xl p-6">
+      <h3 class="text-white font-bold text-lg mb-4">✅ 已调整内容</h3>
+      <ul class="text-slate-400 text-sm space-y-2 text-left">
+        <li>• 标题从 4xl → 2xl（从 36px 降到 24px）</li>
+        <li>• 正文字号全部缩小 1-2 号</li>
+        <li>• 卡片间距调整得更紧凑</li>
+        <li>• 使用了 iPhone X 的真实尺寸（375×812）</li>
+        <li>• 模拟了真实的状态栏和底部安全区</li>
+        <li>• 加入了淡入动画和 hover 交互效果</li>
+        <li>• 用不同颜色和透明度区分课程状态</li>
+      </ul>
+      <p class="text-violet-400 text-sm font-medium mt-4">
+        如果你觉得这个字体和布局 OK，我就按照这个标准去重构所有页面！
+      </p>
+    </div>
+  </div>
+</body>
+</html>

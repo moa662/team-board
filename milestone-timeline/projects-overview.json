@@ -1,0 +1,240 @@
+{
+  "meta": {
+    "title": "我的项目总览",
+    "lastUpdated": "2026-05-11",
+    "version": "2.0"
+  },
+  "stats": {
+    "total": 14,
+    "highPriority": 4,
+    "active": 5,
+    "exploring": 6,
+    "archived": 3
+  },
+  "projects": [
+    {
+      "id": "milestone-timeline",
+      "name": "时间轴系统",
+      "icon": "⏳",
+      "priority": "high",
+      "status": "active",
+      "progress": 80,
+      "description": "个人时间轴系统 - 从项目管理转向时间镜子，记录时间流向、里程碑、每日状态。",
+      "features": [
+        "时间流可视化",
+        "里程碑追踪",
+        "多数据源同步",
+        "语音输入支持"
+      ],
+      "next": "对接真实项目数据，把时间轴用起来，而不只是一个 Demo",
+      "dir": "milestone-timeline"
+    },
+    {
+      "id": "project-board",
+      "name": "我的总看板",
+      "icon": "🎯",
+      "priority": "high",
+      "status": "active",
+      "progress": 90,
+      "description": "所有项目的进度总览，一眼看清下一步做什么。",
+      "features": [
+        "项目总览",
+        "进度追踪",
+        "下一步行动"
+      ],
+      "next": "整合进时间轴系统，统一数据入口",
+      "dir": "我的总看板（已整合进时间轴）"
+    },
+    {
+      "id": "data-toolkit",
+      "name": "数据工具箱",
+      "icon": "📊",
+      "priority": "high",
+      "status": "progress",
+      "progress": 75,
+      "description": "普拉提门店经营数据看板 + 会员数据清洗方案。Python 数据流水线 + ECharts 可视化。",
+      "features": [
+        "数据可视化",
+        "Python 流水线",
+        "数据清洗"
+      ],
+      "next": "导出会员数据样本，测试 OpenRefine",
+      "dir": "data-toolkit"
+    },
+    {
+      "id": "my-wiki",
+      "name": "我的知识库",
+      "icon": "📚",
+      "priority": "high",
+      "status": "active",
+      "progress": 85,
+      "description": "个人知识管理系统，打通 Obsidian 本地编辑 ↔ Get 笔记云同步 ↔ AI 自动处理工作流。",
+      "features": [
+        "Obsidian 同步",
+        "AI 摘要",
+        "待办提取"
+      ],
+      "next": "完善增量同步逻辑，每周至少同步 3 次真实笔记",
+      "dir": "my-wiki"
+    },
+    {
+      "id": "skill-ecosystem",
+      "name": "Skill 生态系统",
+      "icon": "🛠️",
+      "priority": "medium",
+      "status": "active",
+      "progress": 70,
+      "description": "Claude Code Skill 开发和管理体系。包含 remotion-motion、board-updater、xiaona 等 13 个 Skill。",
+      "features": [
+        "Skill 模板化",
+        "自动更新看板",
+        "AI 助手代理"
+      ],
+      "next": "更新 skill-hub 索引，把 5 个新 Skill 加进去；完善 xiaona 的调用逻辑",
+      "dir": "C:/Users/Mao/.claude/skills"
+    },
+    {
+      "id": "short-video-kb",
+      "name": "短视频运营知识库",
+      "icon": "🎬",
+      "priority": "medium",
+      "status": "exploring",
+      "progress": 30,
+      "description": "短视频运营、AI 生成、脚本、剪辑等相关知识整理和沉淀。",
+      "features": [
+        "脚本模板",
+        "AI 生成技巧",
+        "运营方法论"
+      ],
+      "next": "整理 10 篇核心笔记，把知识库真正用起来",
+      "dir": "短视频运营知识库"
+    },
+    {
+      "id": "fitness-coach-pwa",
+      "name": "健身教练 PWA",
+      "icon": "💪",
+      "priority": "medium",
+      "status": "exploring",
+      "progress": 20,
+      "description": "普拉提/健身教练辅助工具 PWA 应用。Vite + React + Tailwind 技术栈。",
+      "features": [
+        "PWA 离线可用",
+        "课程管理",
+        "会员追踪"
+      ],
+      "next": "确定核心功能范围，完成 MVP 界面",
+      "dir": "fitness-coach-pwa"
+    },
+    {
+      "id": "ai-image-gen",
+      "name": "AI 生图工具",
+      "icon": "🎨",
+      "priority": "medium",
+      "status": "exploring",
+      "progress": 30,
+      "description": "多模型一键生图对比工具。支持 Ideogram 2、字节 Seed、FLUX、DALL-E 3。",
+      "features": [
+        "视频封面",
+        "多模型对比",
+        "一键生成"
+      ],
+      "next": "测试 Ideogram vs Seed 效果",
+      "dir": "data-toolkit/image_generator"
+    },
+    {
+      "id": "api-toolkit",
+      "name": "API 工具箱",
+      "icon": "🔌",
+      "priority": "low",
+      "status": "exploring",
+      "progress": 10,
+      "description": "各种 API 调用工具集合。火山引擎用量查询、其他第三方 API 封装。",
+      "features": [
+        "火山引擎用量",
+        "统一 API 封装"
+      ],
+      "next": "整理常用 API，做成可复用的工具库",
+      "dir": "api"
+    },
+    {
+      "id": "remotion-demo",
+      "name": "视频生成 Demo",
+      "icon": "🎥",
+      "priority": "low",
+      "status": "exploring",
+      "progress": 40,
+      "description": "Remotion 用 React 编程生成视频的技术验证项目。已完成漏斗卡片、数据要点、苹果风格等多个模板。",
+      "features": [
+        "React 视频",
+        "数据可视化",
+        "自动化生成"
+      ],
+      "next": "用 remotion-motion Skill 生成第一个真实的营销视频",
+      "dir": "remotion-demo"
+    },
+    {
+      "id": "team-board",
+      "name": "团队协作看板",
+      "icon": "📋",
+      "priority": "low",
+      "status": "progress",
+      "progress": 60,
+      "description": "项目进度追踪看板，任务管理，团队协作。支持拖拽排序，状态流转。",
+      "features": [
+        "任务管理",
+        "拖拽排序",
+        "状态流转"
+      ],
+      "next": "接入真实数据，动态更新项目状态",
+      "dir": "team-board"
+    },
+    {
+      "id": "5a-marketing",
+      "name": "5A 营销系统",
+      "icon": "📈",
+      "priority": "low",
+      "status": "exploring",
+      "progress": 10,
+      "description": "基于 5A 营销模型的营销工具和数据分析系统。",
+      "features": [
+        "营销分析",
+        "用户旅程",
+        "转化漏斗"
+      ],
+      "next": "技术调研，待数据看板稳定后扩展",
+      "dir": "5A-marketing"
+    },
+    {
+      "id": "llm-wiki-starter",
+      "name": "Wiki 初始化器",
+      "icon": "📦",
+      "priority": "low",
+      "status": "archived",
+      "progress": 100,
+      "description": "一键搭建 LLM 友好的知识库结构模板。标准化 Frontmatter、笔记分类。",
+      "features": [
+        "模板生成",
+        "LLM 友好",
+        "标准化"
+      ],
+      "next": "已归档，主力使用我的知识库",
+      "dir": "llm-wiki-starter"
+    },
+    {
+      "id": "obsidian-config",
+      "name": "Obsidian 配置",
+      "icon": "⚙️",
+      "priority": "low",
+      "status": "archived",
+      "progress": 100,
+      "description": "Obsidian 插件、主题、快捷键配置备份和同步。",
+      "features": [
+        "插件管理",
+        "主题配置",
+        "快捷键"
+      ],
+      "next": "持续更新配置中",
+      "dir": "obsidian知识库"
+    }
+  ]
+}

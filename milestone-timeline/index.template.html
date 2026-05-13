@@ -1,0 +1,3813 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的项目进度</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --border: #2a2d3a;
+            --text: #e4e5f1;
+            --text-dim: #8b8da3;
+            --text-muted: #5c5e72;
+            --accent: #818cf8;
+            --warning: #fbbf24;
+            --danger: #f43f5e;
+            --success: #10b981;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 32px 24px 80px;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; }
+
+        .header { margin-bottom: 32px; }
+        .header h1 { font-size: 28px; font-weight: 800; }
+        .header-sub { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+        .view-switch {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        .view-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 150ms ease;
+        }
+        .view-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .view-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        /* ========== 状态筛选栏 ========== */
+        .filter-bar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .filter-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .filter-tag {
+            font-size: 12px; font-weight: 600; color: var(--text-dim);
+            background: var(--bg); border: 1px solid var(--border);
+            padding: 6px 14px; border-radius: 20px; cursor: pointer;
+            transition: all 150ms ease;
+        }
+        .filter-tag:hover { border-color: var(--accent); color: var(--accent); }
+        .filter-tag.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .filter-tag.high.active { background: var(--danger); border-color: var(--danger); }
+        .filter-tag.progress.active { background: var(--success); border-color: var(--success); }
+        .filter-tag.exploring.active { background: var(--warning); border-color: var(--warning); color: #1a1d27; }
+        .filter-clear { font-size: 12px; color: var(--text-muted); cursor: pointer; margin-left: auto; font-weight: 600; }
+        .filter-clear:hover { color: var(--accent); }
+
+        /* ========== 搜索框 ========== */
+        .search-box {
+            margin-bottom: 20px;
+        }
+        .search-input {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px 20px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: all 150ms ease;
+        }
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+        .search-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+        }
+        .filter-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            padding: 10px 16px;
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+        }
+        .filter-status .filter-tag {
+            background: rgba(129, 140, 248, 0.15);
+            color: var(--accent);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .filter-status .filter-tag.count {
+            background: var(--bg);
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+        .filter-status .filter-clear {
+            margin-left: auto;
+            color: #ef4444;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 12px;
+            border-radius: 12px;
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .filter-status .filter-clear:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        /* ========== 项目卡片 ========== */
+        .projects-list { display: flex; flex-direction: column; gap: 12px; }
+
+        .project-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            transition: all 150ms ease;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .project-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+        .project-card.expanded {
+            border-color: var(--accent);
+            box-shadow: 0 8px 32px rgba(129, 140, 248, 0.2);
+        }
+        .project-card.high-priority { border-left: 3px solid var(--danger); }
+        .project-card.active { border-left: 3px solid var(--accent); }
+        .project-card.progress { border-left: 3px solid var(--success); }
+        .project-card.exploring { border-left: 3px solid var(--warning); }
+        .project-card.archived { border-left: 3px solid var(--text-muted); opacity: 0.7; }
+        /* 今天有活跃记录的项目发光效果 */
+        .project-card.today-active {
+            box-shadow: 0 0 0 1px var(--success), 0 4px 20px rgba(16, 185, 129, 0.15);
+            animation: project-pulse 2s ease-in-out infinite;
+        }
+        @keyframes project-pulse {
+            0%, 100% { box-shadow: 0 0 0 1px var(--success), 0 4px 20px rgba(16, 185, 129, 0.15); }
+            50% { box-shadow: 0 0 0 2px var(--success), 0 4px 25px rgba(16, 185, 129, 0.25); }
+        }
+
+        /* 卡片主体（不包含抽屉） */
+        .project-card-main { padding: 18px 20px; }
+
+        .project-header {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 12px;
+        }
+        .project-icon { font-size: 22px; }
+        .project-name { font-size: 15px; font-weight: 700; color: var(--text); flex: 1; }
+        .project-progress {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: conic-gradient(var(--accent) var(--pct), var(--border) 0);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800; color: var(--text);
+            flex-shrink: 0;
+        }
+        .project-progress-inner {
+            width: 32px; height: 32px; border-radius: 50%; background: var(--surface);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .project-card.high-priority .project-progress {
+            background: conic-gradient(var(--danger) var(--pct), var(--border) 0);
+        }
+        .match-badge {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .activity-count-badge {
+            background: var(--surface);
+            color: var(--text-muted);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            border: 1px solid var(--border);
+        }
+        .last-activity.stale {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .todo-badge {
+            background: rgba(251, 191, 36, 0.15);
+            color: #f59e0b;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .stale-warning {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+        .project-metrics {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .metric-item {
+            font-size: 11px;
+            color: var(--text-muted);
+            background: var(--surface);
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .metric-item.todo {
+            background: rgba(251, 191, 36, 0.1);
+            border-color: rgba(251, 191, 36, 0.2);
+            color: #f59e0b;
+        }
+        .metric-icon {
+            margin-right: 2px;
+        }
+        .project-features {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .feature-tag {
+            font-size: 10px;
+            color: var(--text-muted);
+            background: var(--surface);
+            padding: 3px 8px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+        .feature-tag.more {
+            background: rgba(129, 140, 248, 0.1);
+            color: var(--accent);
+            border-color: rgba(129, 140, 248, 0.2);
+        }
+
+        /* 项目进度条 */
+        .project-progress-bar {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .project-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #a78bfa);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        .high-priority .project-progress-fill {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+        }
+        .progress .project-progress-fill {
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+
+        /* ========== 列表操作栏 ========== */
+        .list-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .list-count {
+            font-size: 11px; color: var(--text-muted);
+            font-weight: 600;
+        }
+        .action-btn {
+            font-size: 11px; color: var(--accent);
+            cursor: pointer; font-weight: 600;
+            padding: 4px 10px; border-radius: 12px;
+            background: rgba(129, 140, 248, 0.1);
+            transition: all 0.15s ease;
+        }
+        .action-btn:hover {
+            background: rgba(129, 140, 248, 0.2);
+        }
+        .action-group {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        /* 快速筛选栏 */
+        .quick-filters {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .quick-filter-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .quick-filter-btn {
+            font-size: 11px;
+            color: var(--text);
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            transition: all 0.15s ease;
+        }
+        .quick-filter-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* 时间线视图样式 */
+        .timeline-view {
+            margin-bottom: 24px;
+        }
+        .timeline-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .timeline-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .timeline-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+        .timeline-item:hover {
+            border-color: var(--accent);
+            transform: translateX(4px);
+        }
+        .timeline-date {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .timeline-content {
+            font-size: 13px;
+            color: var(--text);
+            margin-top: 4px;
+        }
+        .timeline-project {
+            font-size: 11px;
+            color: var(--accent);
+            margin-top: 4px;
+            font-weight: 600;
+        }
+        .timeline-tags {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+        }
+        .timeline-tag {
+            font-size: 9px;
+            background: var(--bg);
+            color: var(--text-muted);
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+
+        /* ========== 空状态 ========== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        .empty-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        .empty-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .project-card.progress .project-progress {
+            background: conic-gradient(var(--success) var(--pct), var(--border) 0);
+        }
+        .project-progress {
+            transition: all 0.3s ease;
+        }
+        .project-card:hover .project-progress {
+            transform: scale(1.1);
+        }
+        .project-card.pinned {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15);
+        }
+        .pin-btn {
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0.4;
+            transition: all 0.15s ease;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .pin-btn:hover {
+            opacity: 1;
+            background: rgba(139, 92, 246, 0.15);
+        }
+        .project-card.pinned .pin-btn {
+            opacity: 1;
+        }
+        .pinned-badge {
+            background: rgba(139, 92, 246, 0.15);
+            color: #8b5cf6;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .focus-btn {
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0.4;
+            transition: all 0.15s ease;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .focus-btn:hover {
+            opacity: 1;
+            background: rgba(6, 182, 212, 0.15);
+        }
+        .project-card.focused {
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+            transform: scale(1.01);
+        }
+        .focus-banner {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(6, 182, 212, 0.05));
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .focus-banner-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #06b6d4;
+        }
+        .focus-stats {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-left: 12px;
+        }
+        .focus-exit {
+            margin-left: auto;
+            background: rgba(6, 182, 212, 0.15);
+            color: #06b6d4;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .focus-exit:hover {
+            background: rgba(6, 182, 212, 0.25);
+        }
+        .activity-date-group {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            padding: 8px 0 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px dashed var(--border);
+            margin-bottom: 8px;
+        }
+
+        .project-desc {
+            font-size: 12px; color: var(--text-dim);
+            line-height: 1.5; margin-bottom: 12px;
+        }
+        .latest-activity-preview {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(129, 140, 248, 0.05);
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
+            font-size: 11px;
+            border-left: 2px solid var(--accent);
+        }
+        .latest-icon { opacity: 0.7; }
+        .latest-text {
+            flex: 1;
+            color: var(--text-dim);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .latest-date {
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        /* ========== 下一步行动 - 最核心视觉 ========== */
+        .project-next {
+            background: linear-gradient(135deg, rgba(129, 140, 248, 0.15), rgba(129, 140, 248, 0.05));
+            border: 1px solid rgba(129, 140, 248, 0.2);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+        }
+        .project-next-label {
+            font-size: 10px; font-weight: 800; color: var(--accent);
+            text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 4px; opacity: 0.8;
+        }
+        .project-next-text {
+            font-size: 14px; font-weight: 700; color: var(--accent);
+            line-height: 1.4;
+        }
+        .project-card.high-priority .project-next {
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.15), rgba(244, 63, 94, 0.05));
+            border-color: rgba(244, 63, 94, 0.2);
+        }
+        .project-card.high-priority .project-next-label,
+        .project-card.high-priority .project-next-text {
+            color: var(--danger);
+        }
+        .quick-log-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px dashed rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            margin-top: 8px;
+            cursor: pointer;
+            transition: all 150ms ease;
+        }
+        .quick-log-bar:hover {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.5);
+        }
+        .quick-log-icon {
+            font-size: 14px;
+        }
+        .quick-log-text {
+            font-size: 12px;
+            color: #10b981;
+            font-weight: 600;
+        }
+        .project-card.high-priority .quick-log-bar {
+            background: rgba(244, 63, 94, 0.08);
+            border-color: rgba(244, 63, 94, 0.3);
+        }
+        .project-card.high-priority .quick-log-bar:hover {
+            background: rgba(244, 63, 94, 0.15);
+            border-color: rgba(244, 63, 94, 0.5);
+        }
+        .project-card.high-priority .quick-log-text {
+            color: var(--danger);
+        }
+
+        /* ========== 活动抽屉 ========== */
+        .project-activity-drawer {
+            max-height: 0; overflow: hidden;
+            transition: max-height 300ms ease;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 0 solid var(--border);
+        }
+        .project-card.expanded .project-activity-drawer {
+            max-height: 600px;
+            border-top: 1px solid var(--border);
+        }
+
+        .activity-header {
+            padding: 14px 20px 10px;
+            font-size: 11px; font-weight: 700; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.5px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .activity-count {
+            background: var(--surface); padding: 2px 8px; border-radius: 10px;
+            font-size: 10px;
+        }
+        .activity-filter {
+            background: rgba(251, 191, 36, 0.15);
+            color: #f59e0b;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .activity-list {
+            padding: 0 20px 16px;
+            display: flex; flex-direction: column; gap: 6px;
+            max-height: 400px; overflow-y: auto;
+        }
+        .activity-list::-webkit-scrollbar { width: 4px; }
+        .activity-list::-webkit-scrollbar-track { background: transparent; }
+        .activity-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        .activity-item {
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 10px 12px;
+            transition: all 150ms ease;
+        }
+        .activity-item:hover { border-color: var(--accent); }
+        .activity-item.personal { border-left: 2px solid var(--accent); }
+        .activity-item.work { border-left: 2px solid var(--success); }
+        .activity-item.todo {
+            border-left: 2px solid var(--warning);
+            background: rgba(251, 191, 36, 0.05);
+            position: relative;
+        }
+        .activity-item.todo::before {
+            content: '📋';
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            opacity: 0.5;
+        }
+        .activity-item.matched {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.08);
+        }
+        .activity-item.manual-match {
+            border-left: 3px solid #8b5cf6;
+            background: rgba(139, 92, 246, 0.05);
+        }
+        .activity-tag.matched-keyword {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            font-weight: 600;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .activity-tag.manual-tag {
+            background: rgba(139, 92, 246, 0.15);
+            color: #8b5cf6;
+            font-weight: 600;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            cursor: pointer;
+        }
+        .activity-tag.manual-tag:hover {
+            background: rgba(139, 92, 246, 0.25);
+        }
+        .assign-buttons {
+            display: flex;
+            gap: 6px;
+            margin-left: auto;
+        }
+        .assign-select {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+        .assign-select:hover {
+            border-color: var(--accent);
+        }
+        .assign-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .assign-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+        .quick-match-btn {
+            background: rgba(129, 140, 248, 0.15);
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid rgba(129, 140, 248, 0.3);
+            white-space: nowrap;
+            transition: all 150ms ease;
+        }
+        .quick-match-btn:hover {
+            background: rgba(129, 140, 248, 0.3);
+        }
+
+        .activity-time {
+            font-size: 10px; font-weight: 600; color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .activity-title {
+            font-size: 12px; font-weight: 600; color: var(--text);
+            line-height: 1.4;
+        }
+        .activity-content {
+            font-size: 11px; color: var(--text-dim);
+            line-height: 1.5; margin-top: 4px; padding-top: 4px;
+            border-top: 1px dashed var(--border);
+        }
+        .activity-tags {
+            display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px;
+        }
+        .activity-tag {
+            font-size: 9px; font-weight: 600; color: var(--text-muted);
+            background: var(--surface); padding: 1px 6px; border-radius: 4px;
+        }
+
+        .no-activity {
+            padding: 20px; text-align: center;
+            font-size: 12px; color: var(--text-muted); font-style: italic;
+        }
+
+        /* ========== 展开指示器 ========== */
+        .expand-indicator {
+            text-align: center; padding-top: 8px; margin-top: 8px;
+            border-top: 1px dashed var(--border);
+            font-size: 10px; color: var(--text-muted);
+            transition: all 150ms ease;
+        }
+        .project-card:hover .expand-indicator { color: var(--accent); }
+        .expand-icon { display: inline-block; transition: transform 200ms ease; }
+        .project-card.expanded .expand-icon { transform: rotate(180deg); }
+
+        /* ========== 统计概览卡片 ========== */
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        /* ========== 今日概览 ========== */
+        .today-overview {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            margin-bottom: 16px;
+        }
+        .today-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .today-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .today-count {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--accent);
+            background: rgba(129, 140, 248, 0.15);
+            padding: 2px 10px;
+            border-radius: 10px;
+        }
+        .today-empty {
+            text-align: center;
+            padding: 24px 16px;
+        }
+        .empty-icon {
+            font-size: 40px;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .empty-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .empty-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .today-entries {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .today-entry {
+            display: flex;
+            gap: 12px;
+            padding: 10px 12px;
+            background: rgba(129, 140, 248, 0.08);
+            border: 1px solid rgba(129, 140, 248, 0.15);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 150ms ease;
+        }
+        .today-entry:hover {
+            background: rgba(129, 140, 248, 0.15);
+            border-color: rgba(129, 140, 248, 0.3);
+            transform: translateX(4px);
+        }
+        .today-entry-time {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--accent);
+            white-space: nowrap;
+            padding-top: 1px;
+        }
+        .today-entry-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .today-entry-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.3;
+            margin-bottom: 3px;
+        }
+        .today-entry-project {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .today-more {
+            font-size: 11px;
+            color: var(--accent);
+            text-align: center;
+            padding: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .today-more:hover {
+            text-decoration: underline;
+        }
+        .today-projects {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .today-projects-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        .today-project-tag {
+            font-size: 14px;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 6px;
+            background: rgba(129, 140, 248, 0.1);
+            transition: all 150ms ease;
+        }
+        .today-project-tag:hover {
+            background: rgba(129, 140, 248, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* ========== 本周热力图 ========== */
+        .weekly-heatmap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            margin-bottom: 16px;
+        }
+        .heatmap-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .heatmap-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .heatmap-total {
+            font-size: 11px;
+            font-weight: 600;
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.15);
+            padding: 2px 10px;
+            border-radius: 10px;
+        }
+        .heatmap-bars {
+            display: flex;
+            gap: 8px;
+            height: 80px;
+            align-items: flex-end;
+        }
+        .heatmap-day {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .heatmap-bar-wrap {
+            height: 50px;
+            width: 100%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .heatmap-bar {
+            width: 18px;
+            border-radius: 4px 4px 2px 2px;
+            transition: all 150ms ease;
+        }
+        .heatmap-bar:hover {
+            transform: scaleY(1.1);
+            transform-origin: bottom;
+        }
+        .heatmap-bar.level-0 { background: rgba(148, 163, 184, 0.15); }
+        .heatmap-bar.level-1 { background: rgba(129, 140, 248, 0.3); }
+        .heatmap-bar.level-2 { background: rgba(129, 140, 248, 0.5); }
+        .heatmap-bar.level-3 { background: rgba(129, 140, 248, 0.7); }
+        .heatmap-bar.level-4 { background: var(--accent); }
+        .heatmap-bar.today {
+            box-shadow: 0 0 0 2px #f59e0b;
+        }
+        .heatmap-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        .heatmap-count {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            text-align: center;
+            transition: all 150ms ease;
+        }
+        .stat-card:hover { border-color: var(--accent); }
+        .stat-value {
+            font-size: 28px; font-weight: 800;
+            color: var(--accent); margin-bottom: 4px;
+        }
+        .stat-card.high .stat-value { color: #ef4444; }
+        .stat-card.active .stat-value { color: #818cf8; }
+        .stat-card.progress .stat-value { color: #10b981; }
+        .stat-card.exploring .stat-value { color: #f59e0b; }
+        .stat-label { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+
+        /* ========== 进度分布可视化 ========== */
+        .progress-distribution {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+        .pd-label {
+            font-size: 12px; font-weight: 600; color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+        .pd-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            height: 50px;
+        }
+        .pd-bar-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+        }
+        .pd-bar {
+            width: 100%;
+            background: var(--border);
+            border-radius: 3px;
+            transition: all 0.2s ease;
+            min-height: 3px;
+        }
+        .pd-bar:hover {
+            filter: brightness(1.2);
+        }
+        .pd-bar.hot {
+            background: linear-gradient(180deg, #10b981, #059669);
+        }
+        .pd-bar-label {
+            font-size: 9px; color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* ========== 当前目标与里程碑 ========== */
+        .goal-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            margin-bottom: 20px;
+        }
+        .goal-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .goal-icon { font-size: 24px; }
+        .goal-title { flex: 1; font-size: 16px; font-weight: 700; color: var(--text); }
+        .goal-progress { font-size: 18px; font-weight: 800; }
+        .goal-focus {
+            font-size: 12px; color: var(--text-dim);
+            margin-bottom: 12px;
+        }
+        .goal-progress-bar {
+            height: 6px;
+            background: var(--bg);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .goal-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #a78bfa);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .milestones-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .milestone-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            position: relative;
+        }
+        .milestone-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--border);
+            flex-shrink: 0;
+            margin-top: 4px;
+            z-index: 1;
+        }
+        .milestone-dot.completed { background: #10b981; }
+        .milestone-dot.current {
+            background: #818cf8;
+            box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.2);
+        }
+        .milestone-content { flex: 1; padding-bottom: 16px; }
+        .milestone-title {
+            font-size: 13px; font-weight: 600; color: var(--text);
+        }
+        .milestone-meta {
+            font-size: 11px; color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .milestone-line {
+            position: absolute;
+            left: 5px;
+            top: 16px;
+            width: 2px;
+            height: calc(100% - 12px);
+            background: var(--border);
+        }
+        .milestone-line.completed { background: #10b981; }
+
+        /* ========== 回到顶部 ========== */
+        .back-to-top {
+            position: fixed; bottom: 20px; right: 20px;
+            width: 44px; height: 44px; border-radius: 50%;
+            background: var(--accent); color: #fff; border: none;
+            cursor: pointer; font-size: 16px; font-weight: 700;
+            box-shadow: 0 4px 12px rgba(129, 140, 248, 0.4);
+            transition: all 150ms ease; opacity: 0.9;
+        }
+        .back-to-top:hover { opacity: 1; transform: translateY(-2px); }
+
+        /* 快捷操作悬浮按钮 */
+        .quick-actions {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 99;
+        }
+        .quick-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: var(--surface);
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 150ms ease;
+            opacity: 0.8;
+        }
+        .quick-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* ========== 弹窗样式 ========== */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            position: relative;
+            width: 90%;
+            max-width: 500px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: modalSlideIn 0.2s ease;
+        }
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--text);
+        }
+        .modal-close {
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 20px;
+            padding: 4px 8px;
+        }
+        .modal-close:hover {
+            color: var(--text);
+        }
+        .modal-body {
+            padding: 20px;
+        }
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: var(--accent);
+        }
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            padding: 8px 12px;
+            background: rgba(129, 140, 248, 0.1);
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.15s ease;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover {
+            border-color: var(--text-muted);
+        }
+        .btn-secondary.danger {
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.05);
+            margin-right: auto;
+        }
+        .btn-secondary.danger:hover {
+            background: rgba(239, 68, 68, 0.15);
+        }
+        .ignored-chip {
+            display: inline-block;
+            font-size: 11px;
+            color: var(--text-muted);
+            background: rgba(140, 143, 153, 0.15);
+            padding: 4px 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .ignored-chip:hover {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+
+        /* 搜索结果高亮 */
+        .search-highlight {
+            background: rgba(251, 191, 36, 0.3);
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        /* ========== 今日推荐 ========== */
+        .today-section {
+            background: linear-gradient(135deg, rgba(129, 140, 248, 0.1), rgba(129, 140, 248, 0.02));
+            border: 1px solid rgba(129, 140, 248, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            margin-bottom: 24px;
+        }
+        .today-header {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 14px; font-weight: 700; color: var(--accent);
+            margin-bottom: 16px;
+        }
+        .today-list { display: flex; flex-direction: column; gap: 10px; }
+        .today-item {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 12px 16px;
+            display: flex; align-items: center; gap: 12px; cursor: pointer;
+            transition: all 150ms ease;
+        }
+        .today-item:hover { border-color: var(--accent); }
+        .today-icon { font-size: 18px; }
+        .today-name { flex: 1; font-size: 13px; font-weight: 600; }
+        .today-next {
+            font-size: 11px; color: var(--text-dim);
+            max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .today-priority {
+            padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700;
+            background: var(--danger); color: #fff;
+        }
+
+        /* ========== 最近活动时间线 ========== */
+        .recent-activity-section { margin-bottom: 24px; }
+        .recent-activity-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .recent-activity-title { font-size: 14px; font-weight: 700; }
+        .recent-activity-view-all {
+            font-size: 11px; color: var(--text-muted); cursor: pointer;
+            transition: color 150ms ease;
+        }
+        .recent-activity-view-all:hover { color: var(--accent); }
+
+        .mini-timeline {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 16px 20px;
+        }
+        .mini-timeline-item {
+            display: flex; gap: 12px; padding: 8px 0;
+            border-bottom: 1px dashed var(--border);
+        }
+        .mini-timeline-item:last-child { border-bottom: none; }
+        .mini-timeline-time {
+            font-size: 10px; font-weight: 600; color: var(--text-muted);
+            min-width: 75px; padding-top: 2px;
+        }
+        .mini-timeline-content { flex: 1; }
+        .mini-timeline-title { font-size: 12px; font-weight: 600; }
+        .mini-timeline-project {
+            font-size: 10px; color: var(--accent); margin-top: 2px; font-weight: 600;
+        }
+
+        /* ========== 项目最后活动时间 ========== */
+        .last-activity {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 10px; color: var(--text-muted);
+            padding: 2px 6px; background: var(--bg); border-radius: 6px;
+        }
+        .last-activity.recent { color: var(--success); }
+        .last-activity.dot::before {
+            content: ''; width: 6px; height: 6px; border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* ========== 未分类日志卡片 ========== */
+        .unclassified-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+        .unclassified-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .unclassified-title { font-size: 13px; font-weight: 700; color: var(--warning); }
+        .unclassified-count {
+            padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700;
+            background: rgba(251, 191, 36, 0.2); color: var(--warning);
+        }
+        .unclassified-toggle {
+            font-size: 11px; color: var(--text-muted); cursor: pointer;
+            transition: color 150ms ease;
+        }
+        .unclassified-toggle:hover { color: var(--accent); }
+        .data-btn {
+            background: rgba(129, 140, 248, 0.1);
+            color: var(--accent);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid rgba(129, 140, 248, 0.2);
+            transition: all 0.15s ease;
+        }
+        .data-btn:hover {
+            background: rgba(129, 140, 248, 0.2);
+        }
+        .data-btn.danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+        .data-btn.danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .footer { text-align: center; margin-top: 48px; font-size: 11px; color: var(--text-muted); }
+
+        /* ========== 响应式优化 ========== */
+        @media (max-width: 768px) {
+            body { padding: 16px 12px; }
+            .stats-overview { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            .stat-card { padding: 12px; }
+            .stat-value { font-size: 22px; }
+            .today-entry { flex-wrap: wrap; gap: 6px; }
+            .today-entry-time { padding-top: 0; }
+            .today-item { flex-wrap: wrap; gap: 6px; }
+            .heatmap-bars { gap: 4px; height: 60px; }
+            .heatmap-bar { width: 14px; }
+            .today-next { flex-basis: 100%; font-size: 11px; opacity: 0.8; }
+            .filter-bar { gap: 8px; }
+            .filter-label { display: none; }
+            .project-header { gap: 6px; }
+            .project-name { font-size: 13px; }
+            .project-progress { width: 32px; height: 32px; font-size: 9px; }
+            .project-next-text { font-size: 12px; }
+            .mini-timeline-item { flex-direction: column; align-items: flex-start; gap: 2px; }
+            .mini-timeline-time { font-size: 9px; opacity: 0.7; }
+            /* 时间流视图移动端优化 */
+            .view-switch { flex-wrap: wrap; }
+            .view-btn { flex: 1; min-width: 100px; padding: 10px 12px; }
+            .global-timeline-header { flex-direction: column; gap: 8px; align-items: flex-start; }
+            .timeline-entry { flex-wrap: wrap; gap: 8px; }
+            .timeline-entry-time { min-width: auto; padding-top: 0; }
+            .timeline-entry-meta { gap: 4px; }
+            .timeline-entry-tag { font-size: 9px; padding: 1px 4px; }
+            /* 项目指标移动端优化 */
+            .project-metrics { flex-wrap: wrap; gap: 6px; }
+            .metric-item { font-size: 10px; padding: 3px 6px; }
+            /* 操作按钮优化 */
+            .quick-actions { right: 8px; bottom: 70px; }
+            .quick-btn { width: 36px; height: 36px; font-size: 14px; }
+            .back-to-top { width: 38px; height: 38px; right: 8px; bottom: 20px; }
+            /* 弹窗优化 */
+            .modal-content { width: 95%; margin: 10px; }
+            .modal-body { padding: 16px; }
+            /* 搜索框优化 */
+            .search-input { padding: 12px 16px; font-size: 16px; }
+            /* 未分类卡片优化 */
+            .unclassified-header { flex-wrap: wrap; gap: 8px; }
+            /* 筛选状态栏 */
+            .filter-status { gap: 6px; }
+            .filter-status .filter-tag { font-size: 10px; padding: 3px 8px; }
+        }
+
+        /* 高亮动画 */
+        /* ========== 全局时间流样式 ========== */
+        .global-timeline { margin-bottom: 20px; }
+        .global-timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        .global-timeline-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .global-timeline-stats {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .timeline-date-group {
+            margin-bottom: 20px;
+        }
+        .timeline-date-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent);
+            background: rgba(129, 140, 248, 0.1);
+            padding: 4px 12px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .timeline-entries-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .timeline-entry {
+            display: flex;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            transition: all 150ms ease;
+            cursor: pointer;
+        }
+        .timeline-entry:hover {
+            border-color: var(--accent);
+            transform: translateX(4px);
+        }
+        .timeline-entry.ignored { opacity: 0.5; }
+        .timeline-entry-time {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            white-space: nowrap;
+            min-width: 45px;
+            padding-top: 2px;
+        }
+        .timeline-entry-content { flex: 1; min-width: 0; }
+        .timeline-entry-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.4;
+            margin-bottom: 4px;
+        }
+        .timeline-entry-desc {
+            font-size: 12px;
+            color: var(--text-dim);
+            line-height: 1.4;
+            margin-bottom: 6px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .timeline-entry-meta {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .timeline-entry-project {
+            font-size: 11px;
+            color: var(--accent);
+            font-weight: 600;
+            background: rgba(129, 140, 248, 0.1);
+            padding: 2px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .timeline-entry-project:hover {
+            background: rgba(129, 140, 248, 0.25);
+            transform: translateY(-1px);
+        }
+        .timeline-entry-tag {
+            font-size: 10px;
+            color: var(--text-muted);
+            background: rgba(140, 143, 153, 0.15);
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+        .timeline-quick-match {
+            font-size: 12px;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 6px;
+            background: rgba(129, 140, 248, 0.15);
+            border: 1px solid rgba(129, 140, 248, 0.3);
+            transition: all 150ms ease;
+        }
+        .timeline-quick-match:hover {
+            background: rgba(129, 140, 248, 0.3);
+            transform: scale(1.1);
+        }
+        .timeline-action-btn {
+            font-size: 12px;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 6px;
+            background: rgba(140, 143, 153, 0.15);
+            opacity: 0.6;
+            transition: all 0.15s ease;
+        }
+        .timeline-action-btn:hover {
+            opacity: 1;
+            background: rgba(239, 68, 68, 0.15);
+        }
+        .timeline-action-btn.danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        .timeline-quick-btn {
+            font-size: 13px;
+            cursor: pointer;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: rgba(129, 140, 248, 0.1);
+            opacity: 0.7;
+            transition: all 0.15s ease;
+            margin-right: 4px;
+        }
+        .timeline-quick-btn:hover {
+            opacity: 1;
+            background: rgba(129, 140, 248, 0.25);
+            transform: scale(1.1);
+        }
+
+        @keyframes pulse-highlight {
+            0% { box-shadow: 0 0 0 0 rgba(129, 140, 248, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(129, 140, 248, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(129, 140, 248, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>我的项目进度</h1>
+            <div class="header-sub">🚀 进度记忆器 v4.8 · 再也不会忘记项目状态了</div>
+            <div class="view-switch">
+                <button class="view-btn ${currentView === 'projects' ? 'active' : ''}" onclick="currentView = 'projects'; render();">📋 项目视图</button>
+                <button class="view-btn ${currentView === 'timeline' ? 'active' : ''}" onclick="currentView = 'timeline'; render();">⏰ 时间流</button>
+            </div>
+        </div>
+        <div id="app"></div>
+        <div class="footer">数据来自 timeline-data.json · 最后更新: <span id="lastUpdate"></span> · 进度记忆器 v4.8 · <span style="cursor: pointer; color: var(--accent);" onclick="showHelp()">快捷键帮助</span></div>
+    </div>
+    <button class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="回到顶部">↑</button>
+    <div class="quick-actions">
+        <button class="quick-btn" onclick="showAddEntryModal();" title="添加记录 (N)">➕</button>
+        <button class="quick-btn" onclick="document.getElementById('searchInput').focus();" title="搜索 (/)">🔍</button>
+        <button class="quick-btn" onclick="window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})" title="到底部">↓</button>
+        <button class="quick-btn" onclick="focusProjectId = null; searchQuery = ''; clearProjectFilter(); render();" title="重置所有筛选/搜索">🔄</button>
+    </div>
+
+    <!-- 添加记录弹窗 -->
+    <div id="addEntryModal" class="modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeAddEntryModal();"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">➕ 添加新记录</span>
+                <span class="modal-close" onclick="closeAddEntryModal();">✕</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>标题 *</label>
+                    <input type="text" id="entryTitle" placeholder="做了什么？" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>内容描述</label>
+                    <textarea id="entryContent" placeholder="详细描述（可选）" class="form-textarea" rows="3"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>所属项目</label>
+                        <select id="entryProject" class="form-select">
+                            <option value="">自动匹配</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>标签（逗号分隔）</label>
+                        <input type="text" id="entryTags" placeholder="开发, 思考" class="form-input">
+                    </div>
+                </div>
+                <div class="form-hint">
+                    💡 保存后会下载新的 timeline-data.json 文件，覆盖原文件即可生效
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddEntryModal();">取消</button>
+                <button class="btn btn-secondary danger" id="deleteEntryBtn" onclick="deleteCurrentEntry();" style="display: none;">🗑️ 删除</button>
+                <button class="btn btn-primary" onclick="saveNewEntry();">💾 保存并下载</button>
+            </div>
+        </div>
+    </div>
+    <script>const timelineData = {{TIMELINE_DATA}};</script>
+    <script>
+        let activeProjectFilter = null;
+        let expandedProjectId = null;
+        let showUnclassified = false;
+        let showRecentActivity = true;
+        let searchQuery = '';
+        let sortBy = 'priority'; // priority, progress, recent
+        let pinnedProjects = JSON.parse(localStorage.getItem('pinnedProjects') || '[]');
+        let focusProjectId = null;
+        let currentView = 'projects'; // 'projects' 项目视图, 'timeline' 全局时间流
+        // 手动匹配映射: { entryId: projectId }
+        let manualMatches = JSON.parse(localStorage.getItem('manualMatches') || '{}');
+        // 忽略的日志（不分配给任何项目）
+        let ignoredEntries = JSON.parse(localStorage.getItem('ignoredEntries') || '[]');
+        window.expandAllMode = false;
+
+        // ========== 条目类型判断 ==========
+        function isPersonalEntry(tags) {
+            return tags.some(t => t.includes('开发') || t.includes('AI') || t.includes('时间轴') || t.includes('知识库') || t.includes('思考') || t.includes('灵感') || t.includes('Obsidian'));
+        }
+        function isWorkEntry(tags) {
+            return tags.some(t => t.includes('商业') || t.includes('运营') || t.includes('产品') || t.includes('公司') || t.includes('短视频') || t.includes('税务') || t.includes('门店'));
+        }
+        function isTodoEntry(tags) {
+            return tags.some(t => t.includes('待办') || t.includes('代办') || t.includes('需求代办'));
+        }
+
+        // 项目特定关键词配置
+        const projectSpecificKeywords = {
+            'milestone-timeline': ['时间轴系统', '进度记忆器', '里程碑', '项目卡片', '时间流向', '时间轴项目', '原型', '需求文档', '竞品参考', '方向'],
+            'my-wiki': ['知识库', 'Obsidian', 'AI链接笔记', 'wiki-sync', '增量同步', '笔记云同步', '我的知识库', 'NotebookLM', '知识管理'],
+            'data-toolkit': ['数据工具箱', '数据清洗', '数据看板', '会员数据', '普拉提门店', '数据流水线', '数据分析'],
+            'skill-ecosystem': ['Skill 生态', '自动更新看板', 'xiaona', 'remotion-motion', 'skill-hub', 'Skill开发', 'defuddle'],
+            'short-video-kb': ['短视频运营', '短视频知识库', '抖音', '小红书', '视频脚本', '短视频', '视频链接', 'B端'],
+            'fitness-coach-pwa': ['健身教练', '健身PWA', '普拉提行业', '课程管理', '健身教练PWA', '普拉提'],
+            'ai-image-gen': ['生图工具', '图片生成', 'Ideogram', 'Seed', '视频封面', 'AI生图'],
+            'team-board': ['团队协作', '团队看板', '任务管理', '团队协作看板'],
+            '5a-marketing': ['5A营销', '营销系统', '转化漏斗', '用户旅程', '5A'],
+            'api-toolkit': ['API工具箱', '火山引擎', '用量查询'],
+            'remotion-demo': ['Remotion', '视频生成'],
+            'project-board': ['我的总看板', '进度总览'],
+        };
+
+        // ========== 原始的项目 - 日志匹配函数（会被 render 函数中的全局去重逻辑覆盖） ==========
+        function getEntriesForProject(project, allEntries) {
+            const manualMatched = allEntries.filter(e => manualMatches[e.id] === project.id);
+            manualMatched.forEach(e => e._matchedKeywords = ['✋ 手动匹配']);
+
+            const keywords = projectSpecificKeywords[project.id] || [];
+            const autoMatched = allEntries.filter(entry => {
+                if (manualMatches[entry.id] || ignoredEntries.includes(entry.id)) return false;
+                const searchText = (entry.title + ' ' + (entry.content || '') + ' ' + (entry.tags || []).join(' ')).toLowerCase();
+                const matchedKeywords = keywords.filter(kw => {
+                    const kwLower = kw.toLowerCase().trim();
+                    return kwLower.length >= 2 && searchText.includes(kwLower);
+                });
+                if (matchedKeywords.length > 0) {
+                    entry._matchedKeywords = matchedKeywords;
+                    return true;
+                }
+                return false;
+            });
+
+            return [...manualMatched, ...autoMatched].sort((a, b) => {
+                const dateA = new Date(a.date + ' ' + (a.time || '00:00'));
+                const dateB = new Date(b.date + ' ' + (b.time || '00:00'));
+                return dateB - dateA;
+            });
+        }
+
+        // ========== 获取未分类日志 ==========
+        function getUnclassifiedEntries(projects, allEntries) {
+            const classifiedIds = new Set();
+            const projectMatchCount = {};
+            projects.forEach(p => {
+                const entries = getEntriesForProject(p, allEntries);
+                projectMatchCount[p.id] = entries.length;
+                entries.forEach(e => classifiedIds.add(e.id));
+            });
+            const unclassified = allEntries.filter(e => !classifiedIds.has(e.id) && !ignoredEntries.includes(e.id))
+                .sort((a, b) => new Date(b.date + ' ' + (b.time || '00:00')) - new Date(a.date + ' ' + (a.time || '00:00')));
+            // 调试信息（生产环境可注释）
+            // console.log(`📊 项目日志匹配统计:`);
+            // projects.forEach(p => console.log(`  ${p.name}: ${projectMatchCount[p.id]} 条`));
+            // console.log(`❌ 未分类日志: ${unclassified.length}/${allEntries.length} 条`);
+            // console.log(`🤷 已忽略日志: ${ignoredEntries.length} 条`);
+            return unclassified;
+        }
+
+        // ========== 获取项目最后活动时间 ==========
+        function getLastActivityDate(project, allEntries) {
+            const entries = getEntriesForProject(project, allEntries);
+            if (entries.length === 0) return null;
+            return entries[0].date + ' ' + (entries[0].time || '00:00');
+        }
+
+        // ========== 判断是否最近活跃（3天内） ==========
+        function isRecentlyActive(lastActivityStr) {
+            if (!lastActivityStr) return false;
+            const lastDate = new Date(lastActivityStr);
+            const daysDiff = (Date.now() - lastDate) / (1000 * 60 * 60 * 24);
+            return daysDiff <= 3;
+        }
+
+        // ========== 智能推荐今日应该推进的项目 ==========
+        function getRecommendedProjects(projects, allEntries) {
+            return projects
+                .filter(p => p.priority === 'high' || p.status === 'active')
+                .map(p => ({
+                    ...p,
+                    entries: getEntriesForProject(p, allEntries),
+                    lastActivity: getLastActivityDate(p, allEntries)
+                }))
+                .sort((a, b) => {
+                    // 高优且最近没活动的排在最前面
+                    const aStale = a.priority === 'high' && !isRecentlyActive(a.lastActivity);
+                    const bStale = b.priority === 'high' && !isRecentlyActive(b.lastActivity);
+                    if (aStale && !bStale) return -1;
+                    if (!aStale && bStale) return 1;
+                    // 然后按优先级排序
+                    const priorityOrder = { high: 0, medium: 1, low: 2 };
+                    return (priorityOrder[a.priority] || 0) - (priorityOrder[b.priority] || 0);
+                })
+                .slice(0, 4); // 最多推荐4个
+        }
+
+        // ========== 渲染主函数 ==========
+        function render() {
+            if (!timelineData) return;
+            const { projects, entries } = timelineData;
+
+            // ====== 全局匹配与去重：同一条日志只显示在最匹配的项目下 ======
+            // 1. 先收集每条日志的所有匹配项目
+            const entryMatchMap = {};
+            entries.forEach(entry => {
+                if (manualMatches[entry.id] || ignoredEntries.includes(entry.id)) return;
+                const matchedProjects = [];
+                projects.forEach(p => {
+                    const keywords = projectSpecificKeywords[p.id] || [];
+                    const searchText = (entry.title + ' ' + (entry.content || '') + ' ' + (entry.tags || []).join(' ')).toLowerCase();
+                    const matchedKeywords = keywords.filter(kw => searchText.includes(kw.toLowerCase()));
+                    if (matchedKeywords.length > 0) {
+                        matchedProjects.push({ project: p, keywords: matchedKeywords });
+                    }
+                });
+                if (matchedProjects.length > 0) {
+                    entryMatchMap[entry.id] = matchedProjects;
+                }
+            });
+
+            // 2. 全局分配：同一条日志只分配给一个项目（关键词匹配数多的优先）
+            const globalEntryAssignment = {}; // entryId -> projectId
+            Object.entries(entryMatchMap).forEach(([entryId, matches]) => {
+                // 按匹配关键词数量排序，选择最匹配的项目
+                if (matches.length === 1) {
+                    globalEntryAssignment[entryId] = matches[0].project.id;
+                } else {
+                    // 多重匹配：选择关键词匹配数量最多的项目
+                    const bestMatch = matches.sort((a, b) => b.keywords.length - a.keywords.length)[0];
+                    globalEntryAssignment[entryId] = bestMatch.project.id;
+                }
+            });
+
+            // 3. 保存原始函数引用，重写 getEntriesForProject 使用全局分配结果
+            const originalGetEntries = getEntriesForProject;
+            getEntriesForProject = function(project, allEntries) {
+                const manualMatched = allEntries.filter(e => manualMatches[e.id] === project.id);
+                manualMatched.forEach(e => e._matchedKeywords = ['✋ 手动匹配']);
+
+                const autoMatched = allEntries.filter(entry => {
+                    if (manualMatches[entry.id] || ignoredEntries.includes(entry.id)) return false;
+                    return globalEntryAssignment[entry.id] === project.id;
+                });
+
+                // 标记自动匹配的关键词（用于调试显示）
+                autoMatched.forEach(entry => {
+                    const keywords = projectSpecificKeywords[project.id] || [];
+                    const searchText = (entry.title + ' ' + (entry.content || '') + ' ' + (entry.tags || []).join(' ')).toLowerCase();
+                    entry._matchedKeywords = keywords.filter(kw => searchText.includes(kw.toLowerCase()));
+                });
+
+                return [...manualMatched, ...autoMatched].sort((a, b) => {
+                    const dateA = new Date(a.date + ' ' + (a.time || '00:00'));
+                    const dateB = new Date(b.date + ' ' + (b.time || '00:00'));
+                    return dateB - dateA;
+                });
+            };
+
+            // 计算各状态数量
+            const statusCounts = {};
+            const priorityCounts = {};
+            projects.forEach(p => {
+                statusCounts[p.status] = (statusCounts[p.status] || 0) + 1;
+                priorityCounts[p.priority] = (priorityCounts[p.priority] || 0) + 1;
+            });
+
+            let html = '';
+
+            // ====== 视图切换：全局时间流视图 ======
+            if (currentView === 'timeline') {
+                // 全局时间流：所有日志按时间倒序排列
+                html += renderGlobalTimeline(entries, projects, globalEntryAssignment);
+                document.getElementById('app').innerHTML = html;
+                return;
+            }
+
+            // ====== 视图切换：项目视图（原有逻辑） ======
+            // 0. 统计概览
+            html += renderStatsOverview(projects, entries);
+
+            // 0.05 今日概览
+            html += renderTodayOverview(entries, projects);
+
+            // 0.08 本周活动热力图
+            html += renderWeeklyHeatmap(entries);
+
+            // 0.1 项目进度分布可视化
+            html += renderProgressDistribution(projects);
+
+            // 0.2 当前目标与里程碑进度
+            html += renderCurrentGoalAndMilestones(timelineData);
+
+            // 0.3 专注模式提示
+            if (focusProjectId) {
+                const focusProject = projects.find(p => p.id === focusProjectId);
+                if (focusProject) {
+                    const focusEntries = getEntriesForProject(focusProject, entries);
+                    html += '<div class="focus-banner" onclick="event.stopPropagation()">';
+                    html += '<span class="focus-banner-title">🎯 专注模式: ' + esc(focusProject.name) + '</span>';
+                    html += '<span class="focus-stats">进度: ' + focusProject.progress + '% · 日志: ' + focusEntries.length + ' 条</span>';
+                    html += '<span class="focus-exit" onclick="toggleFocus(\'' + focusProjectId + '\', event)">退出专注</span>';
+                    html += '</div>';
+                }
+            }
+
+            // 0.5 搜索框
+            html += renderSearchBox();
+
+            // 1. 今日推荐
+            const recommended = getRecommendedProjects(projects, entries);
+            html += renderTodaySection(recommended);
+
+            // 2. 最近活动时间线
+            const recentEntries = [...entries]
+                .sort((a, b) => new Date(b.date + ' ' + (b.time || '00:00')) - new Date(a.date + ' ' + (a.time || '00:00')))
+                .slice(0, 8);
+            html += renderRecentActivity(recentEntries, projects);
+
+            // 3. 未分类日志提示
+            const unclassified = getUnclassifiedEntries(projects, entries);
+            if (unclassified.length > 0) {
+                html += renderUnclassified(unclassified);
+            }
+
+            // 4. 筛选栏
+            html += renderFilterBar(statusCounts, priorityCounts, projects);
+
+            // 筛选项目
+            let filtered = projects;
+            if (activeProjectFilter) {
+                if (activeProjectFilter.startsWith('priority:')) {
+                    const priority = activeProjectFilter.replace('priority:', '');
+                    filtered = projects.filter(p => p.priority === priority);
+                } else if (activeProjectFilter.startsWith('progress:')) {
+                    const range = activeProjectFilter.replace('progress:', '').split('-').map(Number);
+                    filtered = projects.filter(p => p.progress > range[0] && p.progress <= range[1]);
+                } else if (activeProjectFilter === 'hastodo') {
+                    filtered = projects.filter(p => getEntriesForProject(p, entries).some(e => isTodoEntry(e.tags || [])));
+                } else if (activeProjectFilter === 'stale') {
+                    // 高优且超过7天没有活动
+                    filtered = projects.filter(p => {
+                        if (p.priority !== 'high') return false;
+                        const lastActivity = getLastActivityDate(p, entries);
+                        if (!lastActivity) return true; // 从未有活动的也算停滞
+                        const days = Math.floor((new Date() - new Date(lastActivity)) / (1000 * 60 * 60 * 24));
+                        return days > 7;
+                    });
+                } else if (activeProjectFilter === 'recent') {
+                    // 最近3天有活动
+                    filtered = projects.filter(p => {
+                        const lastActivity = getLastActivityDate(p, entries);
+                        if (!lastActivity) return false;
+                        const days = Math.floor((new Date() - new Date(lastActivity)) / (1000 * 60 * 60 * 24));
+                        return days <= 3;
+                    });
+                } else if (activeProjectFilter === 'pinned') {
+                    filtered = projects.filter(p => pinnedProjects.includes(p.id));
+                } else {
+                    filtered = projects.filter(p => p.status === activeProjectFilter);
+                }
+            }
+
+            // 专注模式 - 只显示专注的项目
+            if (focusProjectId) {
+                filtered = filtered.filter(p => p.id === focusProjectId);
+            }
+
+            // 搜索过滤 - 同时搜索项目信息和关联的活动日志
+            let searchMatchedLogs = {};
+            if (searchQuery.trim()) {
+                const q = searchQuery.toLowerCase().trim();
+                filtered = filtered.filter(p => {
+                    const nameMatch = p.name.toLowerCase().includes(q);
+                    const descMatch = (p.description || '').toLowerCase().includes(q);
+                    const nextMatch = (p.next || '').toLowerCase().includes(q);
+                    const featMatch = (p.features || []).some(f => f.toLowerCase().includes(q));
+                    // 同时搜索关联的活动日志
+                    const matchedEntries = getEntriesForProject(p, entries).filter(e =>
+                        (e.title || '').toLowerCase().includes(q) ||
+                        (e.content || '').toLowerCase().includes(q) ||
+                        (e.tags || []).some(t => t.toLowerCase().includes(q))
+                    );
+                    if (matchedEntries.length > 0) {
+                        searchMatchedLogs[p.id] = matchedEntries.length;
+                    }
+                    return nameMatch || descMatch || nextMatch || featMatch || matchedEntries.length > 0;
+                });
+            }
+
+            // 排序
+            let sorted = [...filtered];
+            // 置顶项目排最前
+            sorted.sort((a, b) => {
+                const aPinned = pinnedProjects.includes(a.id);
+                const bPinned = pinnedProjects.includes(b.id);
+                if (aPinned && !bPinned) return -1;
+                if (!aPinned && bPinned) return 1;
+                return 0;
+            });
+            // 然后按其他规则排序
+            if (sortBy === 'progress') {
+                sorted.sort((a, b) => {
+                    const aPinned = pinnedProjects.includes(a.id);
+                    const bPinned = pinnedProjects.includes(b.id);
+                    if (aPinned && !bPinned) return -1;
+                    if (!aPinned && bPinned) return 1;
+                    return b.progress - a.progress;
+                });
+            } else if (sortBy === 'recent') {
+                sorted.sort((a, b) => {
+                    const aPinned = pinnedProjects.includes(a.id);
+                    const bPinned = pinnedProjects.includes(b.id);
+                    if (aPinned && !bPinned) return -1;
+                    if (!aPinned && bPinned) return 1;
+                    const aLast = getLastActivityDate(a, entries);
+                    const bLast = getLastActivityDate(b, entries);
+                    if (!aLast) return 1;
+                    if (!bLast) return -1;
+                    return new Date(bLast) - new Date(aLast);
+                });
+            } else {
+                sorted.sort((a, b) => {
+                    const aPinned = pinnedProjects.includes(a.id);
+                    const bPinned = pinnedProjects.includes(b.id);
+                    if (aPinned && !bPinned) return -1;
+                    if (!aPinned && bPinned) return 1;
+                    const priorityOrder = { high: 0, medium: 1, low: 2 };
+                    const statusOrder = { active: 0, progress: 1, exploring: 2, archived: 3 };
+                    return (priorityOrder[a.priority] || 0) - (priorityOrder[b.priority] || 0) ||
+                           (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0);
+                });
+            }
+
+            // 筛选/搜索状态提示
+            if (activeProjectFilter || searchQuery.trim()) {
+                html += '<div class="filter-status">';
+                if (activeProjectFilter) {
+                    const filterNames = {
+                        'priority:high': '🔴 高优先级',
+                        'priority:medium': '🟡 中优先级',
+                        'priority:low': '🟢 低优先级',
+                        'active': '活跃项目',
+                        'progress': '进行中',
+                        'exploring': '探索中',
+                        'archived': '已归档',
+                        'progress:0-25': '刚启动 0-25%',
+                        'progress:25-50': '进行中 25-50%',
+                        'progress:50-75': '中后期 50-75%',
+                        'progress:75-100': '即将完成 75-100%',
+                        'hastodo': '📋 有待办事项',
+                        'stale': '🔥 高优停滞项目',
+                        'recent': '✨ 最近活跃',
+                        'pinned': '📌 已置顶'
+                    };
+                    html += '<span class="filter-tag"><strong>' + (filterNames[activeProjectFilter] || activeProjectFilter) + '</strong></span>';
+                }
+                if (searchQuery.trim()) {
+                    html += '<span class="filter-tag">🔍 "' + esc(searchQuery) + '"</span>';
+                }
+                html += '<span class="filter-tag count">找到 ' + sorted.length + ' 个项目</span>';
+                html += '<span class="filter-clear" onclick="clearProjectFilter(); clearSearch();">✕ 清除所有</span>';
+                html += '</div>';
+            }
+
+            // 快速智能筛选按钮
+            html += '<div class="quick-filters">';
+            html += '<span class="quick-filter-label">快速筛选:</span>';
+            html += '<span class="quick-filter-btn" onclick="setProjectFilter(\'stale\')">🔥 停滞高优</span>';
+            html += '<span class="quick-filter-btn" onclick="setProjectFilter(\'hastodo\')">📋 有待办</span>';
+            html += '<span class="quick-filter-btn" onclick="setProjectFilter(\'recent\')">✨ 最近活跃</span>';
+            html += '<span class="quick-filter-btn" onclick="setProjectFilter(\'pinned\')">📌 已置顶</span>';
+            html += '</div>';
+
+            // 最近活动时间线（默认折叠）
+            if (showRecentActivity) {
+                html += '<div class="timeline-view">';
+                html += '<div class="timeline-header">';
+                html += '<span class="timeline-title">📰 最近活动时间线</span>';
+                html += '<span class="unclassified-toggle" onclick="showRecentActivity = false; render();">收起</span>';
+                html += '</div>';
+
+                // 按日期分组显示最近活动
+                const recentEntries = [...entries]
+                    .sort((a, b) => new Date(b.date + ' ' + (b.time || '00:00')) - new Date(a.date + ' ' + (a.time || '00:00')))
+                    .slice(0, 20);
+
+                let lastDate = null;
+                recentEntries.forEach(entry => {
+                    if (entry.date !== lastDate) {
+                        html += '<div class="timeline-date">' + formatDate(entry.date) + '</div>';
+                        lastDate = entry.date;
+                    }
+
+                    // 找到归属项目
+                    let entryProject = null;
+                    for (let p of projects) {
+                        if (getEntriesForProject(p, entries).some(e => e.id === entry.id)) {
+                            entryProject = p;
+                            break;
+                        }
+                    }
+
+                    const isTodo = isTodoEntry(entry.tags || []);
+                    html += '<div class="timeline-item" onclick="' + (entryProject ? 'focusProjectId = \'' + entryProject.id + '\'; expandedProjectId = \'' + entryProject.id + '\'; render();' : '') + '">';
+                    html += '<div class="timeline-date">' + (entry.time || '') + '</div>';
+                    html += '<div class="timeline-content">' + (isTodo ? '📋 ' : '') + esc(entry.title) + '</div>';
+                    if (entryProject) {
+                        html += '<div class="timeline-project">' + entryProject.icon + ' ' + esc(entryProject.name) + '</div>';
+                    }
+                    if (entry.tags && entry.tags.length > 0) {
+                        html += '<div class="timeline-tags">';
+                        entry.tags.forEach(t => {
+                            html += '<span class="timeline-tag">' + esc(t) + '</span>';
+                        });
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                });
+                html += '</div>';
+            } else {
+                html += '<div class="timeline-header">';
+                html += '<span class="timeline-title">📰 最近活动时间线</span>';
+                html += '<span class="unclassified-toggle" onclick="showRecentActivity = true; render();">展开 (最近 20 条)</span>';
+                html += '</div>';
+            }
+
+            // 视图切换与操作栏
+            html += '<div class="list-actions">';
+            html += '<span class="list-count">显示 ' + sorted.length + '/' + projects.length + ' 个项目 <span style="color: var(--text-muted);">· 快捷键: / 搜索, 1-5 筛选, E 展开, C 收起</span></span>';
+            html += '<div class="action-group">';
+            html += '<span class="action-btn" onclick="generateProjectReport()">📊 生成报告</span>';
+            html += '<span class="action-btn" onclick="expandAll()">全部展开</span>';
+            html += '<span class="action-btn" onclick="collapseAll()">全部收起</span>';
+            html += '</div>';
+            html += '</div>';
+
+            // 渲染项目列表
+            html += '<div class="projects-list">';
+            if (sorted.length === 0) {
+                html += '<div class="empty-state">';
+                html += '<div class="empty-icon">🔍</div>';
+                html += '<div class="empty-title">没有找到匹配的项目</div>';
+                html += '<div class="empty-desc">尝试调整搜索词或清除筛选条件</div>';
+                html += '<span class="action-btn" onclick="clearSearch(); clearProjectFilter();">清除筛选</span>';
+                html += '</div>';
+            } else {
+                sorted.forEach(p => {
+                    const projectEntries = getEntriesForProject(p, entries);
+                    const matchedLogCount = searchMatchedLogs[p.id] || 0;
+                    html += renderProjectCard(p, projectEntries, matchedLogCount);
+                });
+            }
+            html += '</div>';
+
+            document.getElementById('app').innerHTML = html;
+
+            // 更新页脚最后更新时间
+            const lastUpdateEl = document.getElementById('lastUpdate');
+            if (lastUpdateEl && timelineData.meta && timelineData.meta.lastUpdated) {
+                lastUpdateEl.textContent = formatDate(timelineData.meta.lastUpdated);
+            }
+        }
+
+        // ========== 渲染统计概览 ==========
+        function renderStatsOverview(projects, entries) {
+            const statusCounts = { active: 0, progress: 0, exploring: 0, archived: 0 };
+            projects.forEach(p => statusCounts[p.status]++);
+            const highPriorityCount = projects.filter(p => p.priority === 'high').length;
+            const avgProgress = projects.length > 0
+                ? Math.round(projects.reduce((sum, p) => sum + p.progress, 0) / projects.length)
+                : 0;
+
+            // 计算本周活动数
+            const now = new Date();
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const thisWeekCount = entries.filter(e => new Date(e.date) >= weekAgo).length;
+
+            let html = '<div class="stats-overview">';
+            html += '<div class="stat-card"><div class="stat-value">' + projects.length + '</div><div class="stat-label">总项目数</div></div>';
+            html += '<div class="stat-card active"><div class="stat-value">' + statusCounts.active + '</div><div class="stat-label">活跃项目</div></div>';
+            html += '<div class="stat-card progress"><div class="stat-value">' + thisWeekCount + '</div><div class="stat-label">本周活动</div></div>';
+            html += '<div class="stat-card high"><div class="stat-value">' + highPriorityCount + '</div><div class="stat-label">高优先级</div></div>';
+            html += '<div class="stat-card"><div class="stat-value">' + avgProgress + '%</div><div class="stat-label">平均进度</div></div>';
+            html += '</div>';
+            return html;
+        }
+
+        // ========== 渲染今日概览 ==========
+        function renderTodayOverview(entries, projects) {
+            const today = new Date().toISOString().split('T')[0];
+            const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+            const todayEntries = entries.filter(e => e.date === today && !ignoredEntries.includes(e.id));
+            const yesterdayEntries = entries.filter(e => e.date === yesterday && !ignoredEntries.includes(e.id));
+
+            // 计算涉及的项目
+            const todayProjectIds = new Set();
+            todayEntries.forEach(e => {
+                const pid = manualMatches[e.id];
+                if (pid) todayProjectIds.add(pid);
+                // 尝试自动匹配
+                projects.forEach(p => {
+                    const keywords = projectSpecificKeywords[p.id] || [];
+                    const searchText = (e.title + ' ' + (e.content || '')).toLowerCase();
+                    if (keywords.some(kw => searchText.includes(kw.toLowerCase()))) {
+                        todayProjectIds.add(p.id);
+                    }
+                });
+            });
+            const activeProjects = projects.filter(p => todayProjectIds.has(p.id));
+
+            let html = '<div class="today-overview">';
+            html += '<div class="today-header">';
+            html += '<span class="today-title">📅 今日概览</span>';
+            html += '<span class="today-count">' + todayEntries.length + ' 条记录</span>';
+            html += '</div>';
+
+            if (todayEntries.length === 0) {
+                if (yesterdayEntries.length > 0) {
+                    html += '<div class="today-empty">';
+                    html += '<span class="empty-icon">🌅</span>';
+                    html += '<div class="empty-text">今天还没有记录</div>';
+                    html += '<div class="empty-hint">昨天有 ' + yesterdayEntries.length + ' 条记录，按 N 键添加第一条！</div>';
+                    html += '</div>';
+                } else {
+                    html += '<div class="today-empty">';
+                    html += '<span class="empty-icon">✨</span>';
+                    html += '<div class="empty-text">开始记录你的第一个项目进展吧！</div>';
+                    html += '<div class="empty-hint">按 N 键添加第一条记录</div>';
+                    html += '</div>';
+                }
+            } else {
+                // 显示今天的记录
+                html += '<div class="today-entries">';
+                todayEntries.slice(0, 5).forEach(e => {
+                    // 找到所属项目
+                    let projectIcon = '📦';
+                    let projectName = '未分类';
+                    let projectId = null;
+
+                    const manualPid = manualMatches[e.id];
+                    if (manualPid) {
+                        const p = projects.find(x => x.id === manualPid);
+                        if (p) { projectIcon = p.icon || '📦'; projectName = p.name; projectId = manualPid; }
+                    } else {
+                        projects.forEach(p => {
+                            const keywords = projectSpecificKeywords[p.id] || [];
+                            const searchText = (e.title + ' ' + (e.content || '')).toLowerCase();
+                            if (keywords.some(kw => searchText.includes(kw.toLowerCase()))) {
+                                projectIcon = p.icon || '📦';
+                                projectName = p.name;
+                                projectId = p.id;
+                            }
+                        });
+                    }
+
+                    html += '<div class="today-entry" onclick="event.stopPropagation();' + (projectId ? 'focusAndExpandProject(\'' + projectId + '\');' : '') + '">';
+                    html += '<div class="today-entry-time">' + (e.time || '--:--') + '</div>';
+                    html += '<div class="today-entry-content">';
+                    html += '<div class="today-entry-title">' + esc(e.title) + '</div>';
+                    html += '<div class="today-entry-project">' + projectIcon + ' ' + projectName + '</div>';
+                    html += '</div></div>';
+                });
+                if (todayEntries.length > 5) {
+                    html += '<div class="today-more" onclick="event.stopPropagation(); currentView=\'timeline\'; render();">还有 ' + (todayEntries.length - 5) + ' 条 → 查看全部</div>';
+                }
+                html += '</div>';
+
+                // 涉及的项目
+                if (activeProjects.length > 0) {
+                    html += '<div class="today-projects">';
+                    html += '<span class="today-projects-label">涉及项目：</span>';
+                    activeProjects.forEach(p => {
+                        html += '<span class="today-project-tag" onclick="event.stopPropagation(); focusAndExpandProject(\'' + p.id + '\');" title="' + esc(p.name) + '">' + p.icon + '</span>';
+                    });
+                    html += '</div>';
+                }
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        // ========== 渲染本周活动热力图 ==========
+        function renderWeeklyHeatmap(entries) {
+            const now = new Date();
+            const days = [];
+            const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
+
+            // 获取最近7天的数据
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+                const dateStr = date.toISOString().split('T')[0];
+                const count = entries.filter(e => e.date === dateStr).length;
+                const dayName = dayNames[date.getDay()];
+                days.push({ date: dateStr, count, dayName, isToday: i === 0 });
+            }
+
+            const maxCount = Math.max(...days.map(d => d.count), 1);
+
+            let html = '<div class="weekly-heatmap">';
+            html += '<div class="heatmap-header">';
+            html += '<span class="heatmap-title">🔥 本周节奏</span>';
+            html += '<span class="heatmap-total">' + days.reduce((sum, d) => sum + d.count, 0) + ' 条记录</span>';
+            html += '</div>';
+
+            html += '<div class="heatmap-bars">';
+            days.forEach(d => {
+                const heightPercent = Math.max((d.count / maxCount) * 100, 5);
+                let intensityClass = 'level-0';
+                if (d.count >= 5) intensityClass = 'level-4';
+                else if (d.count >= 3) intensityClass = 'level-3';
+                else if (d.count >= 1) intensityClass = d.count >= 2 ? 'level-2' : 'level-1';
+
+                html += '<div class="heatmap-day" title="' + d.date + ': ' + d.count + ' 条记录">';
+                html += '<div class="heatmap-bar-wrap">';
+                html += '<div class="heatmap-bar ' + intensityClass + (d.isToday ? ' today' : '') + '" style="height: ' + heightPercent + '%"></div>';
+                html += '</div>';
+                html += '<div class="heatmap-label">' + d.dayName + '</div>';
+                html += '<div class="heatmap-count">' + (d.count > 0 ? d.count : '') + '</div>';
+                html += '</div>';
+            });
+            html += '</div></div>';
+            return html;
+        }
+
+        // ========== 渲染项目进度分布可视化 ==========
+        function renderProgressDistribution(projects) {
+            const distribution = [];
+            const segments = 10;
+            for (let i = 0; i < segments; i++) {
+                distribution[i] = 0;
+            }
+            projects.forEach(p => {
+                const bucket = Math.min(Math.floor(p.progress / (100 / segments)), segments - 1);
+                distribution[bucket]++;
+            });
+            const maxCount = Math.max(...distribution, 1);
+
+            let html = '<div class="progress-distribution">';
+            html += '<div class="pd-label">项目进度分布</div>';
+            html += '<div class="pd-bars">';
+            for (let i = 0; i < segments; i++) {
+                const height = (distribution[i] / maxCount) * 100;
+                const startRange = i * 10;
+                const isHot = i >= 7 && distribution[i] > 0;
+                html += '<div class="pd-bar-wrapper">';
+                html += '<div class="pd-bar ' + (isHot ? 'hot' : '') + '" style="height: ' + Math.max(height, 5) + '%;" title="' + startRange + '-' + (startRange + 10) + '%: ' + distribution[i] + ' 个项目"></div>';
+                html += '<div class="pd-bar-label">' + startRange + '</div>';
+                html += '</div>';
+            }
+            html += '</div></div>';
+            return html;
+        }
+
+        // ========== 渲染当前目标和里程碑进度 ==========
+        function renderCurrentGoalAndMilestones(data) {
+            const { current, milestones } = data;
+            if (!current && (!milestones || milestones.length === 0)) return '';
+
+            let html = '<div class="goal-section">';
+
+            if (current) {
+                // 计算进度
+                const start = new Date(current.startDate);
+                const now = new Date();
+                const totalDays = current.expectedDays || 30;
+                const elapsedDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+                const progress = Math.min(Math.max(Math.round((elapsedDays / totalDays) * 100), 0), 100);
+
+                html += '<div class="goal-header">';
+                html += '<span class="goal-icon">🎯</span>';
+                html += '<span class="goal-title">' + esc(current.goal) + '</span>';
+                html += '<span class="goal-progress" style="color: var(--accent);">' + progress + '%</span>';
+                html += '</div>';
+                html += '<div class="goal-focus">' + esc(current.focus) + '</div>';
+                html += '<div class="goal-progress-bar"><div class="goal-progress-fill" style="width: ' + progress + '%;"></div></div>';
+            }
+
+            if (milestones && milestones.length > 0) {
+                html += '<div class="milestones-timeline">';
+                milestones.forEach((m, i) => {
+                    const isCompleted = m.status === 'completed';
+                    const isCurrent = m.status === 'current';
+                    html += '<div class="milestone-item">';
+                    html += '<div class="milestone-dot ' + m.status + '"></div>';
+                    html += '<div class="milestone-content">';
+                    html += '<div class="milestone-title">' + (isCurrent ? '📍 ' : '') + esc(m.title) + '</div>';
+                    html += '<div class="milestone-meta">' + formatDate(m.date) + ' · ' + esc(m.description) + '</div>';
+                    html += '</div>';
+                    if (i < milestones.length - 1) {
+                        html += '<div class="milestone-line ' + (isCompleted ? 'completed' : '') + '"></div>';
+                    }
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        // ========== 渲染搜索框 ==========
+        function renderSearchBox() {
+            let html = '<div class="search-box" style="position: relative;">';
+            html += '<input type="text" class="search-input" id="searchInput" placeholder="🔍 搜索项目名称、描述、下一步..." oninput="handleSearch(this.value)" onkeydown="handleSearchKeydown(event)" value="' + esc(searchQuery) + '">';
+            if (searchQuery.trim()) {
+                html += '<span onclick="clearSearch()" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-muted); font-size: 18px;" onmouseover="this.style.color=\'var(--accent)\'" onmouseout="this.style.color=\'var(--text-muted)\'">✕</span>';
+            }
+            html += '</div>';
+            return html;
+        }
+
+        // ========== 渲染筛选栏 ==========
+        function renderFilterBar(statusCounts, priorityCounts, projects) {
+            // 计算进度范围数量
+            const progressRanges = {
+                '0-25': 0,
+                '25-50': 0,
+                '50-75': 0,
+                '75-100': 0
+            };
+            projects.forEach(p => {
+                if (p.progress <= 25) progressRanges['0-25']++;
+                else if (p.progress <= 50) progressRanges['25-50']++;
+                else if (p.progress <= 75) progressRanges['50-75']++;
+                else progressRanges['75-100']++;
+            });
+
+            let html = '<div class="filter-bar">';
+            html += '<span class="filter-label">按优先级</span>';
+
+            // 优先级筛选
+            const activeIsHigh = activeProjectFilter === 'priority:high';
+            const activeIsMedium = activeProjectFilter === 'priority:medium';
+            const activeIsLow = activeProjectFilter === 'priority:low';
+            html += '<span class="filter-tag high ' + (activeIsHigh ? 'active' : '') + '" onclick="setProjectFilter(\'priority:high\')">🔴 高优 (' + (priorityCounts.high || 0) + ')</span>';
+            html += '<span class="filter-tag ' + (activeIsMedium ? 'active' : '') + '" onclick="setProjectFilter(\'priority:medium\')">中优 (' + (priorityCounts.medium || 0) + ')</span>';
+            html += '<span class="filter-tag ' + (activeIsLow ? 'active' : '') + '" onclick="setProjectFilter(\'priority:low\')">低优 (' + (priorityCounts.low || 0) + ')</span>';
+
+            html += '<span class="filter-label" style="margin-left: 8px;">按状态</span>';
+
+            // 状态筛选
+            html += '<span class="filter-tag ' + (activeProjectFilter === 'active' ? 'active' : '') + '" onclick="setProjectFilter(\'active\')">活跃 (' + (statusCounts.active || 0) + ')</span>';
+            html += '<span class="filter-tag progress ' + (activeProjectFilter === 'progress' ? 'active' : '') + '" onclick="setProjectFilter(\'progress\')">进行中 (' + (statusCounts.progress || 0) + ')</span>';
+            html += '<span class="filter-tag exploring ' + (activeProjectFilter === 'exploring' ? 'active' : '') + '" onclick="setProjectFilter(\'exploring\')">探索中 (' + (statusCounts.exploring || 0) + ')</span>';
+            html += '<span class="filter-tag ' + (activeProjectFilter === 'archived' ? 'active' : '') + '" onclick="setProjectFilter(\'archived\')">已归档 (' + (statusCounts.archived || 0) + ')</span>';
+            html += '<span class="filter-tag ' + (activeProjectFilter === 'hastodo' ? 'active' : '') + '" onclick="setProjectFilter(\'hastodo\')" style="background: rgba(251, 191, 36, 0.15); border-color: rgba(251, 191, 36, 0.3);">📋 有待办</span>';
+
+            // 进度范围筛选
+            html += '<span class="filter-label" style="margin-left: 8px;">按进度</span>';
+            html += '<span class="filter-tag ' + (activeProjectFilter === 'progress:0-25' ? 'active' : '') + '" onclick="setProjectFilter(\'progress:0-25\')">刚启动 (' + progressRanges['0-25'] + ')</span>';
+            html += '<span class="filter-tag ' + (activeProjectFilter === 'progress:25-50' ? 'active' : '') + '" onclick="setProjectFilter(\'progress:25-50\')">进行中 (' + progressRanges['25-50'] + ')</span>';
+            html += '<span class="filter-tag ' + (activeProjectFilter === 'progress:50-75' ? 'active' : '') + '" onclick="setProjectFilter(\'progress:50-75\')">中后期 (' + progressRanges['50-75'] + ')</span>';
+            html += '<span class="filter-tag ' + (activeProjectFilter === 'progress:75-100' ? 'active' : '') + '" onclick="setProjectFilter(\'progress:75-100\')">即将完成 (' + progressRanges['75-100'] + ')</span>';
+
+            if (activeProjectFilter) {
+                html += '<span class="filter-clear" onclick="clearProjectFilter()">✕ 清除筛选</span>';
+            }
+
+            html += '</div>';
+
+            // 排序栏
+            html += '<div class="filter-bar" style="margin-bottom: 16px; padding: 10px 16px;">';
+            html += '<span class="filter-label">排序方式</span>';
+            html += '<span class="filter-tag ' + (sortBy === 'priority' ? 'active' : '') + '" onclick="setSortBy(\'priority\')">按优先级</span>';
+            html += '<span class="filter-tag ' + (sortBy === 'progress' ? 'active' : '') + '" onclick="setSortBy(\'progress\')">按进度 ↓</span>';
+            html += '<span class="filter-tag ' + (sortBy === 'recent' ? 'active' : '') + '" onclick="setSortBy(\'recent\')">最近活跃</span>';
+            html += '</div>';
+
+            return html;
+        }
+
+        // ========== 渲染今日推荐 ==========
+        function renderTodaySection(recommended) {
+            if (recommended.length === 0) return '';
+            let html = '<div class="today-section">';
+            html += '<div class="today-header">🎯 今日推荐推进</div>';
+            html += '<div class="today-list">';
+            recommended.forEach(p => {
+                const isStale = !isRecentlyActive(getLastActivityDate(p, timelineData.entries));
+                html += '<div class="today-item" onclick="toggleProjectExpand(\'' + p.id + '\')">';
+                html += '<span class="today-icon">' + (p.icon || '📦') + '</span>';
+                html += '<span class="today-name">' + esc(p.name) + '</span>';
+                if (isStale && p.priority === 'high') {
+                    html += '<span class="today-priority">需要关注</span>';
+                }
+                html += '<span class="today-next">' + esc(p.next || '暂无计划') + '</span>';
+                html += '</div>';
+            });
+            html += '</div></div>';
+            return html;
+        }
+
+        // ========== 渲染最近活动时间线 ==========
+        // ========== 渲染全局时间流视图 ==========
+        function renderGlobalTimeline(entries, projects, assignmentMap) {
+            // 按日期分组
+            const entriesByDate = {};
+            entries.forEach(e => {
+                if (!entriesByDate[e.date]) entriesByDate[e.date] = [];
+                entriesByDate[e.date].push(e);
+            });
+
+            // 按日期倒序排列
+            const sortedDates = Object.keys(entriesByDate).sort((a, b) => new Date(b) - new Date(a));
+
+            let html = '<div class="global-timeline">';
+            html += '<div class="global-timeline-header">';
+            html += '<span class="global-timeline-title">⏰ 全局时间流 · 全部 ' + entries.length + ' 条记录</span>';
+            html += '<span class="global-timeline-stats">按日期分组 · 点击项目跳转</span>';
+            html += '</div>';
+
+            sortedDates.forEach(date => {
+                const dateEntries = entriesByDate[date].sort((a, b) => {
+                    const timeA = a.time || '00:00';
+                    const timeB = b.time || '00:00';
+                    return timeB.localeCompare(timeA);
+                });
+
+                const today = new Date().toISOString().split('T')[0];
+                const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                let dateLabel = date;
+                if (date === today) dateLabel = '今天 ' + date;
+                else if (date === yesterday) dateLabel = '昨天 ' + date;
+
+                html += '<div class="timeline-date-group">';
+                html += '<div class="timeline-date-label">' + dateLabel + ' · ' + dateEntries.length + ' 条</div>';
+                html += '<div class="timeline-entries-list">';
+
+                dateEntries.forEach(e => {
+                    // 找到所属项目
+                    let projectName = '';
+                    let projectId = assignmentMap[e.id];
+                    const manualProjectId = manualMatches[e.id];
+                    if (manualProjectId) projectId = manualProjectId;
+                    if (projectId) {
+                        const p = projects.find(x => x.id === projectId);
+                        if (p) projectName = (p.icon || '📦') + ' ' + p.name;
+                    }
+                    if (!projectName) projectName = '❓ 未分类';
+
+                    // 条目标签
+                    const tags = e.tags || [];
+                    let tagHtml = tags.slice(0, 3).map(t => '<span class="timeline-entry-tag">' + esc(t) + '</span>').join('');
+                    if (tags.length > 3) tagHtml += '<span class="timeline-entry-tag">+' + (tags.length - 3) + '</span>';
+
+                    const isIgnored = ignoredEntries.includes(e.id);
+                    const extraClass = isIgnored ? 'ignored' : '';
+
+                    html += '<div class="timeline-entry ' + extraClass + '"' + (projectId && !isIgnored ? (' onclick="toggleView(); focusAndExpandProject(\'' + projectId + '\')"') : '') + '>';
+                    html += '<div class="timeline-entry-time">' + (e.time || '--:--') + '</div>';
+                    html += '<div class="timeline-entry-content">';
+                    html += '<div class="timeline-entry-title">' + esc(e.title) + '</div>';
+                    if (e.content) html += '<div class="timeline-entry-desc">' + esc(e.content) + '</div>';
+                    html += '<div class="timeline-entry-meta">';
+                    if (projectId && !isIgnored) {
+                        html += '<span class="timeline-entry-project" onclick="event.stopPropagation(); toggleView(); setTimeout(() => focusAndExpandProject(\'' + projectId + '\'), 50);" title="点击跳转到项目">→ ' + projectName + '</span>';
+                    } else {
+                        html += '<span class="timeline-entry-project">' + projectName + '</span>';
+                    }
+                    html += tagHtml;
+
+                    // 未分类日志：添加快速匹配按钮
+                    if (!projectId && !isIgnored) {
+                        const searchText = (e.title + ' ' + (e.content || '') + ' ' + tags.join(' ')).toLowerCase();
+                        const suggestedProjects = projects
+                            .map(p => {
+                                const kws = projectSpecificKeywords[p.id] || [];
+                                const matched = kws.filter(kw => searchText.includes(kw.toLowerCase()));
+                                return { project: p, score: matched.length, keywords: matched };
+                            })
+                            .filter(x => x.score > 0)
+                            .sort((a, b) => b.score - a.score)
+                            .slice(0, 3);
+
+                        suggestedProjects.forEach(sp => {
+                            html += '<span class="timeline-quick-match" onclick="event.stopPropagation(); quickMatchEntry(\'' + e.id + '\', \'' + sp.project.id + '\')">' + sp.project.icon + '</span>';
+                        });
+                    }
+
+                    // 通用操作按钮：编辑和忽略
+                    if (!isIgnored) {
+                        html += '<span class="timeline-action-btn" onclick="event.stopPropagation(); showEditEntryModal(\'' + e.id + '\')" title="编辑">✏️</span>';
+                        html += '<span class="timeline-action-btn danger" onclick="event.stopPropagation(); if(confirm(\'确定要忽略这条记录吗？\')) ignoreEntry(\'' + e.id + '\');" title="忽略">🙈</span>';
+                    }
+
+                    html += '</div></div></div>';
+                });
+
+                html += '</div></div>';
+            });
+
+            html += '</div>';
+            return html;
+        }
+
+        // 切换回项目视图
+        function toggleView() {
+            currentView = 'projects';
+            render();
+        }
+
+        // 从项目视图跳转到时间流视图，并滚动到该项目的记录
+        function jumpToTimeline(projectId) {
+            currentView = 'timeline';
+            render();
+            // 滚动到项目的第一条记录
+            setTimeout(() => {
+                const firstEntry = document.querySelector('.timeline-entry-project');
+                if (firstEntry) {
+                    firstEntry.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+        }
+
+        // 快速记录：直接为项目添加一条日志
+        function quickLogForProject(projectId) {
+            const title = prompt('记录内容：');
+            if (!title || !title.trim()) return;
+
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const timeStr = now.toTimeString().slice(0, 5);
+
+            // 生成新ID
+            const newId = 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+
+            // 创建新记录
+            const newEntry = {
+                id: newId,
+                date: dateStr,
+                time: timeStr,
+                title: title.trim()
+            };
+
+            // 插入到数组最前面
+            timelineData.entries.unshift(newEntry);
+
+            // 手动匹配到项目
+            manualMatches[newId] = projectId;
+            localStorage.setItem('manualMatches', JSON.stringify(manualMatches));
+
+            showDataModifiedHint();
+            render();
+            alert('✅ 记录已添加！请点击页面顶部的"保存"按钮下载数据文件，覆盖原 timeline-data.json 后刷新页面。');
+        }
+
+        // 时间流视图中快速匹配日志到项目
+        function quickMatchEntry(entryId, projectId) {
+            manualMatches[entryId] = projectId;
+            localStorage.setItem('manualMatches', JSON.stringify(manualMatches));
+            currentView = 'projects';
+            render();
+            // 滚动到项目
+            setTimeout(() => {
+                const el = document.getElementById('project-' + projectId);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+        }
+
+        function renderRecentActivity(entries, projects) {
+            let html = '<div class="recent-activity-section">';
+            html += '<div class="recent-activity-header">';
+            html += '<span class="recent-activity-title">📰 最近活动</span>';
+            if (showRecentActivity) {
+                html += '<span class="recent-activity-view-all" onclick="showRecentActivity = false; render();">收起</span>';
+            } else {
+                html += '<span class="recent-activity-view-all" onclick="showRecentActivity = true; render();">展开 (最近 ' + Math.min(8, entries.length) + ' 条)</span>';
+            }
+            html += '</div>';
+            if (showRecentActivity) {
+                html += '<div class="mini-timeline">';
+                entries.forEach(e => {
+                    // 找到这条日志属于哪个项目
+                    let project = projects.find(p => {
+                        const projectEntries = getEntriesForProject(p, timelineData.entries);
+                        return projectEntries.some(pe => pe.id === e.id);
+                    });
+                    const onClick = project ? ` onclick="focusAndExpandProject('${project.id}', event);"` : '';
+                    const cursor = project ? ' style="cursor: pointer;"' : '';
+                    html += '<div class="mini-timeline-item"' + cursor + onClick + '>';
+                    html += '<div class="mini-timeline-time">' + formatDate(e.date) + ' ' + (e.time || '') + '</div>';
+                    html += '<div class="mini-timeline-content">';
+                    html += '<div class="mini-timeline-title">' + esc(e.title) + '</div>';
+                    if (project) {
+                        html += '<div class="mini-timeline-project">→ ' + esc(project.name) + ' <span style="color: var(--text-muted); font-size: 10px;">点击跳转</span></div>';
+                    }
+                    html += '</div></div>';
+                });
+                html += '</div>';
+            }
+            html += '</div>';
+            return html;
+        }
+
+        // 聚焦并展开项目
+        function focusAndExpandProject(projectId, event) {
+            if (event) event.stopPropagation();
+            expandedProjectId = projectId;
+            focusProjectId = null; // 清除专注模式
+            render();
+            // 滚动到项目卡片
+            setTimeout(() => {
+                const el = document.getElementById('project-' + projectId);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.style.animation = 'pulse-highlight 1s ease-out';
+                }
+            }, 50);
+        }
+
+        // ========== 渲染未分类日志 ==========
+        function renderUnclassified(entries) {
+            let html = '<div class="unclassified-card">';
+            html += '<div class="unclassified-header">';
+            html += '<span class="unclassified-title">⚠️ 未分类日志 - 可手动分配给项目</span>';
+            html += '<span class="unclassified-count">' + entries.length + ' 条 / 已忽略 ' + ignoredEntries.length + ' 条</span>';
+            html += '</div>';
+            // 数据操作按钮
+            html += '<div style="padding: 0 20px 12px; display: flex; gap: 8px; flex-wrap: wrap;">';
+            html += '<span class="data-btn" onclick="exportFullData()">💾 备份完整数据</span>';
+            html += '<span class="data-btn" onclick="importFullData()">📂 恢复完整数据</span>';
+            html += '<span class="data-btn" onclick="exportMatchData()">📋 导出匹配数据</span>';
+            html += '<span class="data-btn" onclick="importMatchData()">📂 导入匹配数据</span>';
+            if (Object.keys(manualMatches).length > 0 || ignoredEntries.length > 0) {
+                html += '<span class="data-btn danger" onclick="if(confirm(\'确定要重置所有手动匹配和忽略设置吗？\')) clearManualMatches();">🔄 重置所有</span>';
+            }
+            html += '</div>';
+
+            // 显示已忽略的日志列表（可恢复）
+            if (ignoredEntries.length > 0 && showUnclassified) {
+                const ignoredLogs = timelineData.entries.filter(e => ignoredEntries.includes(e.id));
+                html += '<div style="padding: 12px 20px; border-top: 1px solid var(--border);">';
+                html += '<div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">⚠️ 已忽略的日志（点击恢复）</div>';
+                html += '<div style="display: flex; flex-wrap: wrap; gap: 6px;">';
+                ignoredLogs.slice(0, 10).forEach(e => {
+                    html += '<span class="ignored-chip" onclick="unignoreEntry(\'' + e.id + '\')" title="' + esc(e.title) + '">' + esc(e.title.slice(0, 15)) + (e.title.length > 15 ? '...' : '') + ' ↩️</span>';
+                });
+                if (ignoredLogs.length > 10) {
+                    html += '<span style="font-size: 11px; color: var(--text-muted); padding: 2px 4px;">+' + (ignoredLogs.length - 10) + ' 条</span>';
+                }
+                html += '</div></div>';
+            }
+
+            if (showUnclassified) {
+                html += '<div class="activity-list">';
+                entries.slice(0, 20).forEach(e => html += renderActivityItem(e, false, true));
+                html += '</div>';
+                html += '<div class="unclassified-toggle" onclick="showUnclassified = false; render();">点击收起</div>';
+            } else {
+                html += '<div class="unclassified-toggle" onclick="showUnclassified = true; render();">点击展开查看并手动分配</div>';
+            }
+            html += '</div>';
+            return html;
+        }
+
+        // ========== 日期格式化 ==========
+        function formatDate(dateStr) {
+            const today = new Date();
+            const date = new Date(dateStr);
+            const diffDays = Math.floor((today - date) / (1000 * 60 * 60 * 24));
+            if (diffDays === 0) return '今天';
+            if (diffDays === 1) return '昨天';
+            if (diffDays === 2) return '前天';
+            if (diffDays < 7) return diffDays + '天前';
+            return dateStr.slice(5); // 只显示月-日
+        }
+
+        // ========== 渲染单个项目卡片 ==========
+        function togglePin(projectId, event) {
+            event.stopPropagation();
+            const index = pinnedProjects.indexOf(projectId);
+            if (index > -1) {
+                pinnedProjects.splice(index, 1);
+            } else {
+                pinnedProjects.push(projectId);
+            }
+            localStorage.setItem('pinnedProjects', JSON.stringify(pinnedProjects));
+            render();
+        }
+
+        function toggleFocus(projectId, event) {
+            event.stopPropagation();
+            focusProjectId = focusProjectId === projectId ? null : projectId;
+            // 自动展开专注的项目
+            if (focusProjectId) {
+                expandedProjectId = projectId;
+            }
+            render();
+        }
+
+        function renderProjectCard(project, entries, matchedLogCount = 0) {
+            const isPinned = pinnedProjects.includes(project.id);
+            const isFocused = focusProjectId === project.id;
+            const isExpanded = window.expandAllMode || expandedProjectId === project.id || isFocused;
+            // 检查是否今天有活跃记录
+            const lastActivity = getLastActivityDate(project, timelineData.entries);
+            const isTodayActive = lastActivity && lastActivity.startsWith(new Date().toISOString().split('T')[0]);
+            const cardClass = 'project-card ' + project.priority + '-priority ' + project.status + (isExpanded ? ' expanded' : '') + (isPinned ? ' pinned' : '') + (isFocused ? ' focused' : '') + (isTodayActive ? ' today-active' : '');
+            const isRecent = isRecentlyActive(lastActivity);
+
+            let html = '<div id="project-' + project.id + '" class="' + cardClass + '" onclick="toggleProjectExpand(\'' + project.id + '\')">';
+            html += '<div class="project-card-main">';
+
+            // 计算活跃度状态
+            const daysSinceLastActivity = lastActivity
+                ? Math.floor((new Date() - new Date(lastActivity)) / (1000 * 60 * 60 * 24))
+                : null;
+            const isStale = daysSinceLastActivity !== null && daysSinceLastActivity > 7;
+
+            // 统计待办数量
+            const todoCount = entries.filter(e => isTodoEntry(e.tags || [])).length;
+
+            // 头部：图标、名称、进度
+            html += '<div class="project-header">';
+            html += '<span class="pin-btn" onclick="togglePin(\'' + project.id + '\', event)" title="' + (isPinned ? '取消置顶' : '置顶项目') + '">' + (isPinned ? '📌' : '📍') + '</span>';
+            html += '<span class="focus-btn" onclick="toggleFocus(\'' + project.id + '\', event)" title="' + (focusProjectId === project.id ? '退出专注模式' : '专注此项目') + '">' + (focusProjectId === project.id ? '🎯' : '🔍') + '</span>';
+            if (isPinned) {
+                html += '<span class="pinned-badge" title="已置顶">置顶</span>';
+            }
+            html += '<span class="project-icon">' + (project.icon || '📦') + '</span>';
+            html += '<span class="project-name">' + esc(project.name) + '</span>';
+            if (matchedLogCount > 0) {
+                html += '<span class="match-badge" title="有 ' + matchedLogCount + ' 条日志匹配搜索内容">📝 ' + matchedLogCount + '</span>';
+            }
+            if (todoCount > 0) {
+                html += '<span class="todo-badge" title="有 ' + todoCount + ' 个待办事项">📋 ' + todoCount + '</span>';
+            }
+            if (lastActivity) {
+                const staleClass = isStale ? ' stale' : '';
+                const daysAgoText = daysSinceLastActivity === 0 ? '今天' :
+                                    daysSinceLastActivity === 1 ? '昨天' :
+                                    daysSinceLastActivity + '天前';
+                html += '<span class="last-activity dot ' + (isRecent ? 'recent' : '') + staleClass + '" title="最后活动时间: ' + lastActivity + '">' + daysAgoText + '</span>';
+            }
+            html += '<span class="activity-count-badge" title="关联 ' + entries.length + ' 条记录">' + entries.length + ' 条</span>';
+            // 快速跳转到时间流视图按钮
+            if (entries.length > 0) {
+                html += '<span class="timeline-quick-btn" onclick="event.stopPropagation(); jumpToTimeline(\'' + project.id + '\')" title="在时间流中查看">⏱️</span>';
+            }
+            html += '<div class="project-progress" style="--pct:' + project.progress + '%"><div class="project-progress-inner">' + project.progress + '%</div></div>';
+            html += '</div>';
+
+            // 描述
+            html += '<div class="project-desc">' + esc(project.description) + '</div>';
+
+            // 最新活动预览（只显示非待办的最新一条）
+            if (entries.length > 0) {
+                const latestEntry = entries.find(e => !isTodoEntry(e.tags || [])) || entries[0];
+                if (latestEntry) {
+                    html += '<div class="latest-activity-preview">';
+                    html += '<span class="latest-icon">💬</span>';
+                    html += '<span class="latest-text">' + esc(latestEntry.title) + '</span>';
+                    html += '<span class="latest-date">' + formatDate(latestEntry.date) + '</span>';
+                    html += '</div>';
+                }
+            }
+
+            // 项目关键指标摘要
+            const totalDays = entries.length > 0 ? Math.ceil((new Date() - new Date(entries[entries.length - 1].date)) / (1000 * 60 * 60 * 24)) + 1 : 0;
+            html += '<div class="project-metrics">';
+            html += '<span class="metric-item"><span class="metric-icon">📅</span> 活跃 ' + totalDays + ' 天</span>';
+            html += '<span class="metric-item"><span class="metric-icon">📝</span> 记录 ' + entries.length + ' 条</span>';
+            if (lastActivity) {
+                html += '<span class="metric-item"><span class="metric-icon">⏱️</span> 最后更新 ' + (daysSinceLastActivity === 0 ? '今天' : daysSinceLastActivity + ' 天前') + '</span>';
+            }
+            if (todoCount > 0) {
+                html += '<span class="metric-item todo"><span class="metric-icon">📋</span> ' + todoCount + ' 个待办</span>';
+            }
+            // 状态标签（可点击切换）
+            const statusLabels = {
+                'active': { label: '进行中', icon: '🔵', color: 'var(--accent)' },
+                'progress': { label: '推进中', icon: '🟢', color: '#10b981' },
+                'exploring': { label: '探索中', icon: '🟡', color: '#f59e0b' },
+                'archived': { label: '已归档', icon: '🟣', color: '#8b5cf6' }
+            };
+            const currentStatus = statusLabels[project.status] || statusLabels['active'];
+            html += '<span class="metric-item status-toggle" onclick="event.stopPropagation(); cycleProjectStatus(\'' + project.id + '\');" style="cursor: pointer; background: rgba(' + (project.status === 'progress' ? '16, 185, 129' : project.status === 'exploring' ? '245, 158, 11' : project.status === 'archived' ? '139, 92, 246' : '129, 140, 248') + ', 0.1);" title="点击切换状态">' + currentStatus.icon + ' ' + currentStatus.label + '</span>';
+            html += '</div>';
+
+            // 项目特性标签
+            if (project.features && project.features.length > 0) {
+                html += '<div class="project-features">';
+                project.features.slice(0, 3).forEach(f => {
+                    html += '<span class="feature-tag">' + esc(f) + '</span>';
+                });
+                if (project.features.length > 3) {
+                    html += '<span class="feature-tag more">+' + (project.features.length - 3) + '</span>';
+                }
+                html += '</div>';
+            }
+
+            // 进度条可视化
+            html += '<div class="project-progress-bar" title="进度 ' + project.progress + '%">';
+            html += '<div class="project-progress-fill" style="width: ' + project.progress + '%;"></div>';
+            html += '</div>';
+
+            // 高优项目长时间未活动的警告
+            if (isStale && project.priority === 'high') {
+                html += '<div class="stale-warning">';
+                html += '⚠️ 该高优项目已 ' + daysSinceLastActivity + ' 天没有活动记录，建议优先推进';
+                html += '</div>';
+            }
+
+            // 下一步行动 - 最核心
+            html += '<div class="project-next">';
+            html += '<div class="project-next-label">下一步</div>';
+            html += '<div class="project-next-text">' + esc(project.next || '暂无下一步计划') + '</div>';
+            html += '</div>';
+
+            // 快速记录栏
+            html += '<div class="quick-log-bar" onclick="event.stopPropagation(); quickLogForProject(\'' + project.id + '\')">';
+            html += '<span class="quick-log-icon">➕</span>';
+            html += '<span class="quick-log-text">快速记录...</span>';
+            html += '</div>';
+
+            // 展开指示器
+            html += '<div class="expand-indicator">';
+            html += '<span class="expand-icon">▼</span> 点击查看最近活动记录 (' + entries.length + ')';
+            html += '</div>';
+
+            html += '</div>'; // .project-card-main
+
+            // 活动抽屉
+            html += '<div class="project-activity-drawer">';
+            if (entries.length > 0) {
+                html += '<div class="activity-header">';
+                html += '<span>📝 活动记录</span>';
+                html += '<span class="activity-count">' + entries.length + ' 条</span>';
+                if (todoCount > 0) {
+                    html += '<span class="activity-filter" onclick="event.stopPropagation();">📋 待办 ' + todoCount + '</span>';
+                }
+                html += '</div>';
+                html += '<div class="activity-list">';
+                // 待办项排最前，然后按日期分组
+                const sortedEntries = [...entries].sort((a, b) => {
+                    const aTodo = isTodoEntry(a.tags || []);
+                    const bTodo = isTodoEntry(b.tags || []);
+                    if (aTodo && !bTodo) return -1;
+                    if (!aTodo && bTodo) return 1;
+                    return new Date(b.date + ' ' + (b.time || '00:00')) - new Date(a.date + ' ' + (a.time || '00:00'));
+                });
+                // 按日期分组渲染
+                let lastDate = null;
+                sortedEntries.forEach(e => {
+                    if (e.date !== lastDate) {
+                        html += '<div class="activity-date-group">' + formatDate(e.date) + '</div>';
+                        lastDate = e.date;
+                    }
+                    const isMatch = searchQuery.trim() && (
+                        (e.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        (e.content || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        (e.tags || []).some(t => t.toLowerCase().includes(searchQuery.toLowerCase()))
+                    );
+                    // 显示重新分配功能（方便用户调整匹配）
+                    html += renderActivityItem(e, isMatch, true);
+                });
+                html += '</div>';
+            } else {
+                html += '<div class="no-activity">暂无关联的活动记录</div>';
+            }
+            html += '</div>';
+
+            html += '</div>'; // .project-card
+            return html;
+        }
+
+        // ========== 渲染单条活动记录 ==========
+        function renderActivityItem(e, isMatch = false, showAssignButtons = false) {
+            const tags = e.tags || [];
+            let cardClass = '';
+            if (isTodoEntry(tags)) {
+                cardClass = 'todo';
+            } else if (isPersonalEntry(tags)) {
+                cardClass = 'personal';
+            } else if (isWorkEntry(tags)) {
+                cardClass = 'work';
+            }
+            if (isMatch) {
+                cardClass += ' matched';
+            }
+            // 手动匹配的标记
+            const isManual = manualMatches[e.id];
+            if (isManual) cardClass += ' manual-match';
+
+            let html = '<div class="activity-item ' + cardClass + '" onclick="event.stopPropagation()">';
+            html += '<div class="activity-time">' + formatDate(e.date) + ' ' + (e.time || '') + '</div>';
+            html += '<div class="activity-title">' + esc(e.title) + '</div>';
+            if (e.content) {
+                html += '<div class="activity-content">' + esc(e.content) + '</div>';
+            }
+            if (tags.length > 0 || e._matchedKeywords || showAssignButtons || isManual) {
+                html += '<div class="activity-tags">';
+                tags.forEach(t => {
+                    html += '<span class="activity-tag">' + esc(t) + '</span>';
+                });
+                // 显示匹配关键词（调试用）
+                if (e._matchedKeywords && e._matchedKeywords.length > 0) {
+                    html += '<span class="activity-tag matched-keyword" title="匹配到的关键词">✓ ' + esc(e._matchedKeywords.join(', ')) + '</span>';
+                }
+                // 手动分配按钮 + 智能推荐
+                if (showAssignButtons) {
+                    // 计算最可能匹配的项目（基于关键词）
+                    const suggestedProjects = timelineData.projects
+                        .map(p => {
+                            const keywords = projectSpecificKeywords[p.id] || [];
+                            const searchText = (e.title + ' ' + (e.content || '') + ' ' + (e.tags || []).join(' ')).toLowerCase();
+                            const matchedCount = keywords.filter(kw => searchText.includes(kw.toLowerCase())).length;
+                            return { project: p, score: matchedCount };
+                        })
+                        .filter(x => x.score > 0)
+                        .sort((a, b) => b.score - a.score)
+                        .slice(0, 2);
+
+                    html += '<span class="assign-buttons">';
+                    // 快速匹配按钮
+                    suggestedProjects.forEach(sp => {
+                        html += '<span class="quick-match-btn" onclick="assignEntryToProject(\'' + e.id + '\', \'' + sp.project.id + '\')" title="快速分配给' + sp.project.name + '">' + sp.project.icon + ' ' + sp.project.name + '</span>';
+                    });
+                    // 下拉选择
+                    html += '<select class="assign-select" onchange="assignEntryToProject(\'' + e.id + '\', this.value); this.value=\'\'; this.blur();">';
+                    html += '<option value="">更多项目...</option>';
+                    timelineData.projects.forEach(p => {
+                        html += '<option value="' + p.id + '">' + p.icon + ' ' + p.name + '</option>';
+                    });
+                    html += '</select>';
+                    html += '<span class="assign-btn" onclick="ignoreEntry(\'' + e.id + '\')" title="忽略这条日志（不分配给任何项目）">✕ 忽略</span>';
+                    html += '</span>';
+                }
+                // 取消手动分配按钮
+                if (isManual) {
+                    const project = timelineData.projects.find(p => p.id === isManual);
+                    html += '<span class="activity-tag manual-tag" onclick="unassignEntry(\'' + e.id + '\')" title="点击取消手动分配">👆 ' + (project ? project.name : isManual) + '</span>';
+                }
+                html += '</div>';
+            }
+            html += '</div>';
+            return html;
+        }
+
+        // ========== 交互函数 ==========
+        function setProjectFilter(filter) {
+            activeProjectFilter = activeProjectFilter === filter ? null : filter;
+            render();
+        }
+
+        function clearProjectFilter() {
+            activeProjectFilter = null;
+            render();
+        }
+
+        function setSortBy(sort) {
+            sortBy = sort;
+            render();
+        }
+
+        // 数据修改标记
+        let dataModified = false;
+
+        // 显示数据修改提示
+        function showDataModifiedHint() {
+            dataModified = true;
+            let hint = document.getElementById('dataModifiedHint');
+            if (!hint) {
+                hint = document.createElement('div');
+                hint.id = 'dataModifiedHint';
+                hint.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 8px 16px; text-align: center; font-size: 13px; font-weight: 600; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);';
+                hint.innerHTML = '📝 数据已修改 <span onclick="saveData();" style="background: rgba(255,255,255,0.2); padding: 2px 12px; border-radius: 12px; margin-left: 12px; cursor: pointer;">点击保存</span><span onclick="revertData();" style="background: rgba(0,0,0,0.1); padding: 2px 12px; border-radius: 12px; margin-left: 8px; cursor: pointer;">撤销</span>';
+                document.body.appendChild(hint);
+            }
+        }
+
+        // 保存数据
+        function saveData() {
+            const jsonStr = JSON.stringify(timelineData, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'timeline-data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+
+            const hint = document.getElementById('dataModifiedHint');
+            if (hint) {
+                hint.innerHTML = '✅ 已保存';
+                hint.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                setTimeout(() => hint.remove(), 1500);
+            }
+            dataModified = false;
+        }
+
+        // 撤销数据修改（重新加载页面）
+        function revertData() {
+            if (confirm('确定要撤销所有修改吗？页面将刷新。')) {
+                location.reload();
+            }
+        }
+
+        // 循环切换项目状态
+        function cycleProjectStatus(projectId) {
+            const project = timelineData.projects.find(p => p.id === projectId);
+            if (!project) return;
+
+            const statusOrder = ['active', 'progress', 'exploring', 'archived'];
+            const currentIndex = statusOrder.indexOf(project.status);
+            const nextIndex = (currentIndex + 1) % statusOrder.length;
+            project.status = statusOrder[nextIndex];
+
+            showDataModifiedHint();
+            render();
+        }
+
+        function toggleProjectExpand(projectId) {
+            // 点击单个项目时退出全部展开模式
+            if (window.expandAllMode) {
+                window.expandAllMode = false;
+            }
+            expandedProjectId = expandedProjectId === projectId ? null : projectId;
+            render();
+            // 如果展开了，滚动到该项目
+            if (expandedProjectId === projectId) {
+                setTimeout(() => {
+                    const el = document.querySelector('[onclick*="' + projectId + '"]');
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 50);
+            }
+        }
+
+        function handleSearch(value) {
+            searchQuery = value;
+            render();
+            // 保持焦点
+            setTimeout(() => {
+                const input = document.getElementById('searchInput');
+                if (input) {
+                    input.focus();
+                    // 将光标移到末尾
+                    const len = input.value.length;
+                    input.setSelectionRange(len, len);
+                }
+            }, 0);
+        }
+
+        // 搜索框回车自动展开第一个项目
+        function handleSearchKeydown(e) {
+            if (e.key === 'Enter' && searchQuery.trim()) {
+                const firstProject = document.querySelector('.project-card');
+                if (firstProject) {
+                    firstProject.click();
+                }
+            }
+        }
+
+        function clearSearch() {
+            searchQuery = '';
+            render();
+        }
+
+        function expandAll() {
+            // 将第一个项目设为展开，其他项目用标记处理
+            if (timelineData.projects.length > 0) {
+                expandedProjectId = timelineData.projects[0].id;
+            }
+            window.expandAllMode = true;
+            render();
+        }
+
+        function collapseAll() {
+            expandedProjectId = null;
+            window.expandAllMode = false;
+            render();
+        }
+
+        function showHelp() {
+            const helpHtml = `
+                <div style="padding: 20px;">
+                    <h3 style="margin: 0 0 16px; color: var(--accent);">⌨️ 快捷键帮助</h3>
+                    <div style="display: grid; gap: 12px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-muted);">添加新记录</span>
+                            <kbd style="background: var(--surface); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border);">N</kbd>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-muted);">搜索</span>
+                            <kbd style="background: var(--surface); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border);">/</kbd>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-muted);">筛选项目</span>
+                            <kbd style="background: var(--surface); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border);">1-5</kbd>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-muted);">全部展开</span>
+                            <kbd style="background: var(--surface); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border);">E</kbd>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-muted);">全部收起</span>
+                            <kbd style="background: var(--surface); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border);">C</kbd>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-muted);">切换视图</span>
+                            <kbd style="background: var(--surface); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border);">V/G</kbd>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-muted);">时间流视图</span>
+                            <kbd style="background: var(--surface); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border);">T</kbd>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-muted);">项目视图</span>
+                            <kbd style="background: var(--surface); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border);">P</kbd>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-muted);">重置匹配数据</span>
+                            <kbd style="background: var(--surface); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border);">R</kbd>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--text-muted);">关闭/清除</span>
+                            <kbd style="background: var(--surface); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border);">Esc</kbd>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // 创建一个临时的帮助弹窗
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'flex';
+            modal.style.zIndex = 1001;
+            modal.innerHTML = `
+                <div class="modal-overlay" onclick="this.parentElement.remove();"></div>
+                <div class="modal-content" style="max-width: 400px;">
+                    <div class="modal-header">
+                        <span class="modal-title">⌨️ 快捷键帮助</span>
+                        <span class="modal-close" onclick="this.closest('.modal').remove();">✕</span>
+                    </div>
+                    <div class="modal-body">
+                        ${helpHtml}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // ========== 添加记录弹窗 ==========
+        function showAddEntryModal() {
+            const modal = document.getElementById('addEntryModal');
+            modal.style.display = 'flex';
+
+            // 填充项目下拉框
+            const select = document.getElementById('entryProject');
+            select.innerHTML = '<option value="">自动匹配</option>';
+            timelineData.projects.forEach(p => {
+                select.innerHTML += '<option value="' + p.id + '">' + (p.icon || '📦') + ' ' + p.name + '</option>';
+            });
+
+            // 聚焦标题输入框
+            setTimeout(() => document.getElementById('entryTitle').focus(), 50);
+        }
+
+        function closeAddEntryModal() {
+            document.getElementById('addEntryModal').style.display = 'none';
+        }
+
+        function saveNewEntry() {
+            const title = document.getElementById('entryTitle').value.trim();
+            if (!title) {
+                alert('请输入标题');
+                return;
+            }
+
+            const content = document.getElementById('entryContent').value.trim();
+            const projectId = document.getElementById('entryProject').value;
+            const tagsStr = document.getElementById('entryTags').value.trim();
+
+            // 生成时间
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const timeStr = now.toTimeString().slice(0, 5);
+
+            // 生成新 ID（时间戳 + 随机数）
+            const newId = 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+
+            // 处理标签
+            const tags = tagsStr ? tagsStr.split(/[,，]/).map(t => t.trim()).filter(t => t) : [];
+
+            // 创建新记录
+            const newEntry = {
+                id: newId,
+                date: dateStr,
+                time: timeStr,
+                title: title
+            };
+
+            if (content) newEntry.content = content;
+            if (tags.length > 0) newEntry.tags = tags;
+
+            // 手动匹配项目
+            if (projectId) {
+                manualMatches[newId] = projectId;
+                localStorage.setItem('manualMatches', JSON.stringify(manualMatches));
+            }
+
+            // 插入到数组最前面
+            timelineData.entries.unshift(newEntry);
+
+            // 更新元数据
+            timelineData.meta.lastUpdated = dateStr;
+
+            // 下载 JSON 文件
+            const jsonStr = JSON.stringify(timelineData, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'timeline-data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+
+            closeAddEntryModal();
+            render();
+
+            // 提示用户
+            alert('✅ 记录已添加！请用下载的文件覆盖原 timeline-data.json，然后刷新页面。');
+        }
+
+        // ========== 编辑记录功能 ==========
+        let editingEntryId = null;
+
+        function showEditEntryModal(entryId) {
+            editingEntryId = entryId;
+            const e = timelineData.entries.find(x => x.id === entryId);
+            if (!e) return;
+
+            const modal = document.getElementById('addEntryModal');
+            const titleEl = document.getElementById('entryTitle');
+            const contentEl = document.getElementById('entryContent');
+            const projectEl = document.getElementById('entryProject');
+            const tagsEl = document.getElementById('entryTags');
+            const modalTitle = document.querySelector('.modal-title');
+            const deleteBtn = document.getElementById('deleteEntryBtn');
+
+            // 修改弹窗标题
+            modalTitle.textContent = '✏️ 编辑记录';
+            deleteBtn.style.display = 'block';
+            titleEl.value = e.title || '';
+            contentEl.value = e.content || '';
+            tagsEl.value = (e.tags || []).join(', ');
+
+            // 填充项目下拉框并选中
+            projectEl.innerHTML = '<option value="">自动匹配</option>';
+            timelineData.projects.forEach(p => {
+                const selected = manualMatches[entryId] === p.id ? ' selected' : '';
+                projectEl.innerHTML += '<option value="' + p.id + '"' + selected + '>' + (p.icon || '📦') + ' ' + p.name + '</option>';
+            });
+
+            modal.style.display = 'flex';
+            setTimeout(() => titleEl.focus(), 50);
+        }
+
+        // 修改保存编辑
+        const originalClose = closeAddEntryModal;
+        closeAddEntryModal = function() {
+            editingEntryId = null;
+            document.querySelector('.modal-title').textContent = '➕ 添加新记录';
+            document.getElementById('deleteEntryBtn').style.display = 'none';
+            originalClose();
+        };
+
+        function deleteCurrentEntry() {
+            if (!editingEntryId) return;
+            if (!confirm('确定要删除这条记录吗？此操作不可撤销。')) return;
+
+            const idx = timelineData.entries.findIndex(e => e.id === editingEntryId);
+            if (idx === -1) return;
+            timelineData.entries.splice(idx, 1);
+
+            closeAddEntryModal();
+            showDataModifiedHint();
+            render();
+            alert('✅ 记录已删除！请点击页面顶部的"保存"按钮下载数据文件，覆盖原 timeline-data.json 后刷新页面。');
+        }
+
+        // 覆盖原保存
+        const originalSave = saveNewEntry;
+        saveNewEntry = function() {
+            if (editingEntryId) {
+                // 编辑模式
+                const e = timelineData.entries.find(x => x.id === editingEntryId);
+                if (!e) return;
+
+                const title = document.getElementById('entryTitle').value.trim();
+                if (!title) { alert('请输入标题'); return; }
+
+                e.title = title;
+                const content = document.getElementById('entryContent').value.trim();
+                if (content) e.content = content; else delete e.content;
+
+                const projectId = document.getElementById('entryProject').value;
+                const tagsStr = document.getElementById('entryTags').value.trim();
+                e.tags = tagsStr ? tagsStr.split(/[,，]/).map(t => t.trim()).filter(t => t) : [];
+
+                // 更新手动匹配
+                if (projectId) {
+                    manualMatches[e.id] = projectId;
+                    localStorage.setItem('manualMatches', JSON.stringify(manualMatches));
+                } else {
+                    delete manualMatches[e.id];
+                    localStorage.setItem('manualMatches', JSON.stringify(manualMatches));
+                }
+
+                closeAddEntryModal();
+                showDataModifiedHint();
+                render();
+
+                alert('✅ 记录已更新！请点击页面顶部的"保存"按钮下载数据文件，覆盖原 timeline-data.json 后刷新页面。');
+            } else {
+                originalSave();
+            }
+        };
+
+        function assignEntryToProject(entryId, projectId) {
+            if (projectId) {
+                manualMatches[entryId] = projectId;
+            } else {
+                delete manualMatches[entryId];
+            }
+            localStorage.setItem('manualMatches', JSON.stringify(manualMatches));
+            render();
+        }
+
+        function ignoreEntry(entryId) {
+            if (!ignoredEntries.includes(entryId)) {
+                ignoredEntries.push(entryId);
+            }
+            localStorage.setItem('ignoredEntries', JSON.stringify(ignoredEntries));
+            render();
+        }
+
+        function clearManualMatches() {
+            manualMatches = {};
+            ignoredEntries = [];
+            localStorage.setItem('manualMatches', JSON.stringify(manualMatches));
+            localStorage.setItem('ignoredEntries', JSON.stringify(ignoredEntries));
+            render();
+        }
+
+        // 导出/导入匹配数据
+        function exportMatchData() {
+            const data = {
+                manualMatches,
+                ignoredEntries,
+                pinnedProjects,
+                exportDate: new Date().toISOString(),
+                version: '3.1'
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'timeline-match-data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importMatchData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (data.manualMatches) manualMatches = data.manualMatches;
+                        if (data.ignoredEntries) ignoredEntries = data.ignoredEntries;
+                        if (data.pinnedProjects) pinnedProjects = data.pinnedProjects;
+                        localStorage.setItem('manualMatches', JSON.stringify(manualMatches));
+                        localStorage.setItem('ignoredEntries', JSON.stringify(ignoredEntries));
+                        localStorage.setItem('pinnedProjects', JSON.stringify(pinnedProjects));
+                        alert('导入成功！共 ' + Object.keys(manualMatches).length + ' 条匹配，' + ignoredEntries.length + ' 条忽略');
+                        render();
+                    } catch (err) {
+                        alert('导入失败：数据格式错误');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function unassignEntry(entryId) {
+            delete manualMatches[entryId];
+            const idx = ignoredEntries.indexOf(entryId);
+            if (idx > -1) ignoredEntries.splice(idx, 1);
+            localStorage.setItem('manualMatches', JSON.stringify(manualMatches));
+            localStorage.setItem('ignoredEntries', JSON.stringify(ignoredEntries));
+            render();
+        }
+
+        function unignoreEntry(entryId) {
+            const idx = ignoredEntries.indexOf(entryId);
+            if (idx > -1) ignoredEntries.splice(idx, 1);
+            localStorage.setItem('ignoredEntries', JSON.stringify(ignoredEntries));
+            render();
+        }
+
+        // 完整数据备份
+        function exportFullData() {
+            const data = {
+                ...timelineData,
+                meta: {
+                    ...timelineData.meta,
+                    exportedAt: new Date().toISOString(),
+                    exportVersion: '4.8'
+                },
+                manualMatches,
+                ignoredEntries,
+                pinnedProjects
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `timeline-backup-${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importFullData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (!confirm('警告：这将覆盖当前所有数据！确定要恢复吗？')) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (!data.projects || !data.entries) {
+                            alert('数据格式错误：缺少 projects 或 entries 字段');
+                            return;
+                        }
+                        timelineData = data;
+                        if (data.manualMatches) {
+                            manualMatches = data.manualMatches;
+                            localStorage.setItem('manualMatches', JSON.stringify(manualMatches));
+                        }
+                        if (data.ignoredEntries) {
+                            ignoredEntries = data.ignoredEntries;
+                            localStorage.setItem('ignoredEntries', JSON.stringify(ignoredEntries));
+                        }
+                        if (data.pinnedProjects) {
+                            pinnedProjects = data.pinnedProjects;
+                            localStorage.setItem('pinnedProjects', JSON.stringify(pinnedProjects));
+                        }
+                        alert('恢复成功！共 ' + data.projects.length + ' 个项目，' + data.entries.length + ' 条记录');
+                        render();
+                    } catch (err) {
+                        alert('恢复失败：' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function esc(t) {
+            const d = document.createElement('div');
+            d.textContent = t;
+            return d.innerHTML;
+        }
+
+        // 生成项目进展报告
+        function generateProjectReport() {
+            const { projects, entries } = timelineData;
+
+            // 统计每个项目的活动
+            const projectStats = projects.map(p => {
+                const projectEntries = getEntriesForProject(p, entries);
+                const todoCount = projectEntries.filter(e => isTodoEntry(e.tags || [])).length;
+                const lastActivity = getLastActivityDate(p, entries);
+                const daysSinceLast = lastActivity
+                    ? Math.floor((new Date() - new Date(lastActivity)) / (1000 * 60 * 60 * 24))
+                    : null;
+
+                return {
+                    ...p,
+                    entryCount: projectEntries.length,
+                    todoCount,
+                    daysSinceLast,
+                    isStale: p.priority === 'high' && daysSinceLast > 7,
+                    isRecent: daysSinceLast !== null && daysSinceLast <= 3
+                };
+            });
+
+            // 汇总统计
+            const stats = {
+                totalProjects: projects.length,
+                highPriority: projects.filter(p => p.priority === 'high').length,
+                active: projects.filter(p => p.status === 'active').length,
+                stale: projectStats.filter(p => p.isStale).length,
+                hasTodo: projectStats.filter(p => p.todoCount > 0).length,
+                totalTodo: projectStats.reduce((sum, p) => sum + p.todoCount, 0),
+                avgProgress: Math.round(projects.reduce((sum, p) => sum + p.progress, 0) / projects.length),
+                totalEntries: entries.length
+            };
+
+            // 生成报告文本
+            let report = `# 项目进度报告 - ${new Date().toLocaleDateString('zh-CN')}\n\n`;
+            report += `## 总体概览\n\n`;
+            report += `- 总项目数: ${stats.totalProjects}\n`;
+            report += `- 高优先级: ${stats.highPriority}\n`;
+            report += `- 活跃项目: ${stats.active}\n`;
+            report += `- 平均进度: ${stats.avgProgress}%\n`;
+            report += `- 高优停滞项目: ${stats.stale} ⚠️\n`;
+            report += `- 有待办项目: ${stats.hasTodo}\n`;
+            report += `- 总待办事项: ${stats.totalTodo}\n`;
+            report += `- 活动记录: ${stats.totalEntries}\n\n`;
+
+            report += `## 项目明细\n\n`;
+            projectStats
+                .sort((a, b) => {
+                    if (a.priority === 'high' && b.priority !== 'high') return -1;
+                    if (a.priority !== 'high' && b.priority === 'high') return 1;
+                    return b.progress - a.progress;
+                })
+                .forEach(p => {
+                    const statusIcon = p.isStale ? '🔥' : p.isRecent ? '✨' : p.todoCount > 0 ? '📋' : '📦';
+                    report += `### ${statusIcon} ${p.icon} ${p.name} (${p.progress}%)\n\n`;
+                    report += `- 状态: ${p.status}\n`;
+                    report += `- 优先级: ${p.priority}\n`;
+                    report += `- 关联日志: ${p.entryCount} 条\n`;
+                    if (p.todoCount > 0) report += `- ⚠️ 待办事项: ${p.todoCount} 条\n`;
+                    if (p.lastActivity) report += `- 最后活动: ${p.lastActivity}\n`;
+                    report += `- 下一步: ${p.next || '暂无'}\n\n`;
+                    report += `> ${p.description}\n\n`;
+                });
+
+            // 下载报告
+            const blob = new Blob([report], { type: 'text/markdown;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `项目进度报告_${new Date().toISOString().slice(0, 10)}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            const activeTag = document.activeElement.tagName;
+            const isInput = activeTag === 'INPUT' || activeTag === 'TEXTAREA';
+
+            // Esc 关闭弹窗或清除搜索和筛选
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('addEntryModal');
+                if (modal && modal.style.display === 'flex') {
+                    closeAddEntryModal();
+                } else if (searchQuery) {
+                    clearSearch();
+                } else if (activeProjectFilter) {
+                    clearProjectFilter();
+                }
+            }
+
+            // N 键添加新记录
+            if (e.key.toLowerCase() === 'n' && !e.ctrlKey && !e.metaKey && !isInput) {
+                e.preventDefault();
+                showAddEntryModal();
+            }
+
+            // "/" 聚焦搜索框
+            if (e.key === '/' && !e.ctrlKey && !e.metaKey && !isInput) {
+                e.preventDefault();
+                const input = document.getElementById('searchInput');
+                if (input) input.focus();
+            }
+
+            // 数字键快速切换筛选
+            if (!isInput) {
+                switch(e.key.toLowerCase()) {
+                    case '1': setProjectFilter('priority:high'); break;
+                    case '2': setProjectFilter('priority:medium'); break;
+                    case '3': setProjectFilter('priority:low'); break;
+                    case '4': clearProjectFilter(); break;
+                    case '5': setProjectFilter('hastodo'); break;
+                    case 'e': expandAll(); break;
+                    case 'c': collapseAll(); break;
+                    case 'f':
+                        // F 键在聚焦模式下退出，否则如果有选中的项目进入专注
+                        if (focusProjectId) {
+                            focusProjectId = null;
+                            render();
+                        }
+                        break;
+                    case 'v':
+                    case 'g':
+                        // V/G 键切换视图
+                        currentView = currentView === 'projects' ? 'timeline' : 'projects';
+                        render();
+                        break;
+                    case 't':
+                        // T 键直接切到时间流视图
+                        currentView = 'timeline';
+                        render();
+                        break;
+                    case 'p':
+                        // P 键直接切到项目视图
+                        currentView = 'projects';
+                        render();
+                        break;
+                    case '?':
+                        showHelp();
+                        break;
+                    case 'r':
+                    case 'R':
+                        if (confirm('确定要重置所有手动匹配和忽略设置吗？')) {
+                            clearManualMatches();
+                        }
+                        break;
+                }
+            }
+        });
+
+        // 启动
+        render();
+    </script>
+</body>
+</html>

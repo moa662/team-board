@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>风格预览 - 选择你喜欢的设计</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+    * {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    /* 风格 2: 极致 Glassmorphism */
+    .style2-bg {
+      background: #000000;
+      position: relative;
+    }
+    .style2-bg::before {
+      content: '';
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 500px;
+      background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.4) 0%, rgba(59, 130, 246, 0.2) 40%, transparent 70%);
+      pointer-events: none;
+    }
+    .style2-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(32px);
+      -webkit-backdrop-filter: blur(32px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .style2-btn {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+      box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+    }
+    .style2-btn:hover {
+      box-shadow: 0 12px 32px rgba(139, 92, 246, 0.5);
+      transform: translateY(-2px);
+    }
+
+    /* 风格 1: Apple Fitness+ */
+    .style1-bg {
+      background: #1c1c1e;
+    }
+    .style1-card {
+      background: #2c2c2e;
+      border: none;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .style1-btn {
+      background: #34c759;
+    }
+    .style1-btn:hover {
+      background: #30d158;
+    }
+
+    /* 风格 3: Notion 极简风 */
+    .style3-bg {
+      background: #ffffff;
+    }
+    .style3-card {
+      background: #f7f6f3;
+      border: 1px solid #e8e6e1;
+    }
+    .style3-btn {
+      background: #2383e2;
+    }
+
+    /* 风格 4: 赛博朋克 */
+    .style4-bg {
+      background: #0a0a0f;
+      position: relative;
+      overflow: hidden;
+    }
+    .style4-bg::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #00f0ff, #ff00ea, #00f0ff);
+      animation: glow 2s linear infinite;
+    }
+    @keyframes glow {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+    .style4-card {
+      background: rgba(20, 20, 35, 0.9);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    .style4-btn {
+      background: linear-gradient(135deg, #00f0ff 0%, #ff00ea 100%);
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
+    }
+
+    .phone-frame {
+      width: 320px;
+      height: 640px;
+      border-radius: 48px;
+      overflow: hidden;
+      box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.5), 0 30px 60px -30px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    .style-tag {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 min-h-screen py-12 px-4">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-12">
+      <h1 class="text-5xl font-extrabold text-white mb-4">🎨 选择设计风格</h1>
+      <p class="text-slate-400 text-xl">点击你最喜欢的风格，用于重构健身教练 App</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 justify-items-center">
+
+      <!-- 风格 1: Apple Fitness+ -->
+      <div class="cursor-pointer group" onclick="selectStyle(1)">
+        <div class="phone-frame style1-bg">
+          <span class="style-tag bg-white/20 text-white backdrop-blur-sm">风格 1</span>
+          <div class="p-6 pt-16 h-full flex flex-col">
+            <h2 class="text-2xl font-extrabold text-white mb-8">教练助手</h2>
+
+            <div class="style1-card rounded-[40px] p-6 mb-4 transition-all group-hover:scale-105">
+              <div class="flex items-center gap-4 mb-3">
+                <div class="w-14 h-14 rounded-full bg-green-500/20 flex items-center justify-center">
+                  <span class="text-2xl">👤</span>
+                </div>
+                <div>
+                  <div class="text-white font-bold text-lg">张三</div>
+                  <div class="text-gray-400 text-sm">剩余 8 课时</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="style1-card rounded-[40px] p-6 mb-4 transition-all group-hover:scale-105">
+              <div class="text-gray-400 text-sm mb-1">本月收入</div>
+              <div class="text-green-400 text-4xl font-extrabold">¥8,600</div>
+            </div>
+
+            <div class="style1-card rounded-[40px] p-6 mb-6 transition-all group-hover:scale-105">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-white font-bold">今日排课</div>
+                  <div class="text-gray-400 text-sm">3 节课</div>
+                </div>
+                <span class="text-3xl">📅</span>
+              </div>
+            </div>
+
+            <button class="style1-btn w-full py-5 rounded-[32px] text-white font-bold text-lg transition-all">
+              开始使用
+            </button>
+          </div>
+        </div>
+        <div class="text-center mt-6">
+          <h3 class="text-xl font-bold text-white mb-2">🍎 Apple Fitness+ 风格</h3>
+          <p class="text-slate-400 text-sm">深灰 + 纯白卡片 + 绿色强调<br>细腻阴影，超大圆角</p>
+        </div>
+      </div>
+
+      <!-- 风格 2: 极致 Glassmorphism -->
+      <div class="cursor-pointer group" onclick="selectStyle(2)">
+        <div class="phone-frame style2-bg">
+          <span class="style-tag bg-violet-500/30 text-violet-200 backdrop-blur-sm">⭐ 推荐</span>
+          <div class="p-6 pt-16 h-full flex flex-col relative z-10">
+            <h2 class="text-2xl font-extrabold text-white mb-8">教练助手</h2>
+
+            <div class="style2-card rounded-[40px] p-6 mb-4 transition-all group-hover:scale-105">
+              <div class="flex items-center gap-4 mb-3">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                  <span class="text-2xl">👤</span>
+                </div>
+                <div>
+                  <div class="text-white font-bold text-lg">张三</div>
+                  <div class="text-violet-200 text-sm">剩余 8 课时</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="style2-card rounded-[40px] p-6 mb-4 transition-all group-hover:scale-105">
+              <div class="text-violet-200 text-sm mb-1">本月收入</div>
+              <div class="text-emerald-400 text-4xl font-extrabold">¥8,600</div>
+            </div>
+
+            <div class="style2-card rounded-[40px] p-6 mb-6 transition-all group-hover:scale-105">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-white font-bold">今日排课</div>
+                  <div class="text-violet-200 text-sm">3 节课</div>
+                </div>
+                <span class="text-3xl">📅</span>
+              </div>
+            </div>
+
+            <button class="style2-btn w-full py-5 rounded-[32px] text-white font-bold text-lg transition-all">
+              开始使用
+            </button>
+          </div>
+        </div>
+        <div class="text-center mt-6">
+          <h3 class="text-xl font-bold text-white mb-2">💜 极致 Glassmorphism</h3>
+          <p class="text-slate-400 text-sm">纯黑 + 紫蓝光晕 + 32px 模糊<br>超细微白边，外发光按钮</p>
+        </div>
+      </div>
+
+      <!-- 风格 3: Notion 极简风 -->
+      <div class="cursor-pointer group" onclick="selectStyle(3)">
+        <div class="phone-frame style3-bg">
+          <span class="style-tag bg-gray-800 text-white">风格 3</span>
+          <div class="p-6 pt-16 h-full flex flex-col">
+            <h2 class="text-2xl font-extrabold text-gray-900 mb-8">教练助手</h2>
+
+            <div class="style3-card rounded-[28px] p-6 mb-4 transition-all group-hover:scale-105">
+              <div class="flex items-center gap-4 mb-3">
+                <div class="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center">
+                  <span class="text-2xl">👤</span>
+                </div>
+                <div>
+                  <div class="text-gray-900 font-bold text-lg">张三</div>
+                  <div class="text-gray-500 text-sm">剩余 8 课时</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="style3-card rounded-[28px] p-6 mb-4 transition-all group-hover:scale-105">
+              <div class="text-gray-500 text-sm mb-1">本月收入</div>
+              <div class="text-emerald-600 text-4xl font-extrabold">¥8,600</div>
+            </div>
+
+            <div class="style3-card rounded-[28px] p-6 mb-6 transition-all group-hover:scale-105">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-gray-900 font-bold">今日排课</div>
+                  <div class="text-gray-500 text-sm">3 节课</div>
+                </div>
+                <span class="text-3xl">📅</span>
+              </div>
+            </div>
+
+            <button class="style3-btn w-full py-5 rounded-[28px] text-white font-bold text-lg transition-all">
+              开始使用
+            </button>
+          </div>
+        </div>
+        <div class="text-center mt-6">
+          <h3 class="text-xl font-bold text-white mb-2">📝 Notion 极简风</h3>
+          <p class="text-slate-400 text-sm">浅白 + 灰白卡片<br>无装饰，内容优先，极致清晰</p>
+        </div>
+      </div>
+
+      <!-- 风格 4: 赛博朋克 -->
+      <div class="cursor-pointer group" onclick="selectStyle(4)">
+        <div class="phone-frame style4-bg">
+          <span class="style-tag bg-cyan-500/30 text-cyan-200 backdrop-blur-sm">风格 4</span>
+          <div class="p-6 pt-16 h-full flex flex-col relative z-10">
+            <h2 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-400 mb-8">
+              教练助手
+            </h2>
+
+            <div class="style4-card rounded-[32px] p-6 mb-4 transition-all group-hover:scale-105">
+              <div class="flex items-center gap-4 mb-3">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500 to-pink-500 flex items-center justify-center">
+                  <span class="text-2xl">👤</span>
+                </div>
+                <div>
+                  <div class="text-white font-bold text-lg">张三</div>
+                  <div class="text-cyan-300 text-sm">剩余 8 课时</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="style4-card rounded-[32px] p-6 mb-4 transition-all group-hover:scale-105">
+              <div class="text-cyan-300 text-sm mb-1">本月收入</div>
+              <div class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-400 text-4xl font-extrabold">
+                ¥8,600
+              </div>
+            </div>
+
+            <div class="style4-card rounded-[32px] p-6 mb-6 transition-all group-hover:scale-105">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-white font-bold">今日排课</div>
+                  <div class="text-cyan-300 text-sm">3 节课</div>
+                </div>
+                <span class="text-3xl">📅</span>
+              </div>
+            </div>
+
+            <button class="style4-btn w-full py-5 rounded-[32px] text-white font-bold text-lg transition-all">
+              开始使用
+            </button>
+          </div>
+        </div>
+        <div class="text-center mt-6">
+          <h3 class="text-xl font-bold text-white mb-2">🌌 赛博朋克</h3>
+          <p class="text-slate-400 text-sm">暗黑 + 霓虹渐变边框<br>蓝紫粉绿渐变，科技感拉满</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="text-center mt-16">
+      <div class="inline-block bg-gradient-to-r from-violet-500/20 to-indigo-500/20 rounded-3xl p-8 border border-violet-500/20">
+        <p class="text-white text-xl font-bold mb-2">👆 点击上方任意手机选择风格</p>
+        <p class="text-slate-400">选好后告诉我，我会按照该风格完整重构整个应用</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function selectStyle(num) {
+      const names = ['', 'Apple Fitness+', '极致 Glassmorphism', 'Notion 极简风', '赛博朋克'];
+      alert(`✅ 你选择了风格 ${num}: ${names[num]}\n\n请回到 Claude 告诉我你的选择！`);
+    }
+  </script>
+</body>
+</html>

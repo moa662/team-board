@@ -1,0 +1,208 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+  background: #000000;
+  min-height: 100vh;
+  margin: 0;
+}
+
+.app-bg {
+  position: relative;
+  background: #000000;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.app-bg::before {
+  content: '';
+  position: absolute;
+  top: -180px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1000px;
+  height: 600px;
+  background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.35) 0%, rgba(59, 130, 246, 0.18) 40%, transparent 70%);
+  pointer-events: none;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.glass-card-hover:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 进度条流光 - 营造运动节奏感 */
+.progress-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-shine::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: shine 2.4s ease-in-out infinite;
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%); }
+  60%, 100% { transform: translateX(350%); }
+}
+
+/* 卡片浮起 + 光晕跟随 */
+.lift-card {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.lift-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 48px rgba(139, 92, 246, 0.18), 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* 数字脉动 - 强调关键指标 */
+@keyframes pulse-glow {
+  0%, 100% { text-shadow: 0 0 24px rgba(167, 139, 250, 0.3); }
+  50% { text-shadow: 0 0 36px rgba(167, 139, 250, 0.6); }
+}
+
+.pulse-number {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* 圆形脉冲 - 在线/活跃状态指示 */
+@keyframes ring-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6); }
+  70% { box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+}
+
+.ring-pulse {
+  animation: ring-pulse 2s infinite;
+}
+
+/* 入场错位动画 - 列表项依次浮现 */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-up {
+  animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+/* 隐藏滚动条 - 用于滚轮选择器 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* DateTime Input Styling */
+input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+input[type="datetime-local"]::-webkit-datetime-edit {
+  padding: 0;
+}
+
+input[type="datetime-local"]::-webkit-datetime-edit-fields-wrapper {
+  padding: 0;
+}
+
+/* Date Input Styling */
+input[type="date"] {
+  color-scheme: dark;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
