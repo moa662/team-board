@@ -1,13 +1,10 @@
 const { verifyKey } = require('discord-interactions');
-const { Anthropic } = require('@anthropic-ai/sdk');
 const { Octokit } = require('@octokit/rest');
 
 const DISCORD_PUBLIC_KEY = process.env.DISCORD_PUBLIC_KEY;
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_REPO = process.env.GITHUB_REPO || 'your-username/my-wiki';
+const GITHUB_REPO = process.env.GITHUB_REPO || 'moa662/team-board';
 
-const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
 function verifyDiscordRequest(req) {
@@ -17,35 +14,35 @@ function verifyDiscordRequest(req) {
   return verifyKey(rawBody, signature, timestamp, DISCORD_PUBLIC_KEY);
 }
 
-async function callClaude(message) {
-  const response = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20240620',
-    max_tokens: 1000,
-    system: `你是一个知识库助手。用户会发给你各种想法、笔记、灵感。
-请把用户的内容整理成Obsidian知识库格式，包括：
-1. 一个清晰的标题
-2. 分类标签（AI技术/商业经营/个人成长/其他）
-3. 一句话摘要
-4. 要点整理
+function formatNote(content) {
+  const date = new Date().toISOString().split('T')[0];
+  return `---
+title: Discord 笔记 ${date}
+created: ${date}
+tags: ["Discord", "速记"]
+---
 
-如果用户只是聊天，正常回答即可。`,
-    messages: [{ role: 'user', content: message }]
-  });
-  return response.content[0].text;
+# ${date} 随手记
+
+${content}
+
+---
+*来自 Discord 机器人自动保存*
+`;
 }
 
-async function saveToGitHub(content, category) {
+async function saveToGitHub(content) {
   const date = new Date().toISOString().split('T')[0];
-  const title = `笔记-${date}-${Math.random().toString(36).substr(2, 5)}`;
-  const path = `wiki/${category}/${title}.md`;
+  const title = `discord-${date}-${Math.random().toString(36).substr(2, 5)}`;
+  const path = `my-wiki/wiki/${title}.md`;
 
   try {
     await octokit.repos.createOrUpdateFileContents({
       owner: GITHUB_REPO.split('/')[0],
       repo: GITHUB_REPO.split('/')[1],
       path,
-      message: `添加笔记: ${title}`,
-      content: Buffer.from(content).toString('base64'),
+      message: `Discord 笔记: ${title}`,
+      content: Buffer.from(formatNote(content)).toString('base64'),
       branch: 'main'
     });
     return true;
@@ -66,61 +63,38 @@ module.exports = async (req, res) => {
 
   const { type, data, member } = req.body;
 
+  // Ping - 健康检查
   if (type === 1) {
     return res.json({ type: 1 });
   }
 
+  // Slash command
   if (type === 2) {
     const command = data.name;
-    const userId = member.user.id;
-    const username = member.user.username;
-
-    if (command === 'chat') {
-      const message = data.options.find(o => o.name === 'message').value;
-
-      res.json({
-        type: 5,
-        data: { content: '🤔 正在思考...' }
-      });
-
-      try {
-        const claudeResponse = await callClaude(message);
-        return res.json({
-          type: 4,
-          data: { content: claudeResponse }
-        });
-      } catch (error) {
-        return res.json({
-          type: 4,
-          data: { content: `❌ 出错了: ${error.message}` }
-        });
-      }
-    }
 
     if (command === 'note') {
       const content = data.options.find(o => o.name === 'content').value;
-      const category = data.options.find(o => o.name === 'category')?.value || '其他';
 
+      // 先 ACK，避免 3 秒超时
       res.json({
         type: 5,
-        data: { content: '📝 正在整理笔记并保存到知识库...' }
+        data: { content: '📝 正在保存笔记...' }
       });
 
       try {
-        const processed = await callClaude(content);
-        const saved = await saveToGitHub(processed, category);
+        const saved = await saveToGitHub(content);
 
         if (saved) {
           return res.json({
             type: 4,
             data: {
-              content: `✅ 笔记已保存到知识库！\n\n**分类:** ${category}\n\n${processed}`
+              content: `✅ 笔记已保存到 GitHub 知识库！\n\n**内容:** ${content.substring(0, 100)}${content.length > 100 ? '...' : ''}`
             }
           });
         } else {
           return res.json({
             type: 4,
-            data: { content: '⚠️ 处理完成，但保存到GitHub失败了' }
+            data: { content: '⚠️ GitHub Token 未配置或保存失败，笔记：\n' + content }
           });
         }
       } catch (error) {
